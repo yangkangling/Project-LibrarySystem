@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+  </marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<rect x="40" y="28" width="1520" height="62" rx="10" fill="#1e40af"/>
+<text x="800" y="69" font-family="Microsoft YaHei, Arial" font-size="30" fill="#ffffff" text-anchor="middle">
+<tspan x="800" dy="0">图书馆借阅系统 - 借书流程图</tspan>
+</text>
+
+<rect x="610" y="140" width="380" height="70" rx="8" fill="#eff6ff" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="174" font-family="Microsoft YaHei, Arial" font-size="18" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">开始：提交读者、图书、应还日期</tspan>
+</text>
+
+<rect x="610" y="260" width="380" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="294" font-family="Microsoft YaHei, Arial" font-size="18" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">查询读者资料</tspan>
+</text>
+
+<polygon points="800,360.0 895.0,420 800,480.0 705.0,420" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+<text x="800" y="427" font-family="Microsoft YaHei, Arial" font-size="16" fill="#0f172a" text-anchor="middle">
+<tspan x="800" dy="0">读者启用？</tspan>
+</text>
+
+<rect x="610" y="520" width="380" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="554" font-family="Microsoft YaHei, Arial" font-size="18" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">查询图书与库存</tspan>
+</text>
+
+<polygon points="800,620.0 895.0,680 800,740.0 705.0,680" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+<text x="800" y="687" font-family="Microsoft YaHei, Arial" font-size="16" fill="#0f172a" text-anchor="middle">
+<tspan x="800" dy="0">可借？</tspan>
+</text>
+
+<polygon points="800,765.0 915.0,830 800,895.0 685.0,830" fill="#fef9c3" stroke="#a16207" stroke-width="2"/>
+<text x="800" y="837" font-family="Microsoft YaHei, Arial" font-size="16" fill="#0f172a" text-anchor="middle">
+<tspan x="800" dy="0">未超5本</tspan>
+<tspan x="800" dy="26">且未重复？</tspan>
+</text>
+
+<rect x="610" y="930" width="380" height="70" rx="8" fill="#ecfdf5" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="964" font-family="Microsoft YaHei, Arial" font-size="18" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">库存 -1，生成借阅记录和快照</tspan>
+</text>
+
+<rect x="1140" y="610" width="330" height="110" rx="8" fill="#fee2e2" stroke="#475569" stroke-width="2"/>
+<text x="1305.0" y="644" font-family="Microsoft YaHei, Arial" font-size="18" fill="#0f172a" text-anchor="middle">
+<tspan x="1305.0" dy="0">失败：返回中文原因</tspan>
+<tspan x="1305.0" dy="26">库存和记录不变化</tspan>
+</text>
+
+<line x1="800" y1="210" x2="800" y2="260" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+
+
+<line x1="800" y1="330" x2="800" y2="360" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+
+
+<line x1="800" y1="480" x2="800" y2="520" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="800.0" y="494.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">是</tspan>
+</text>
+
+<line x1="800" y1="590" x2="800" y2="620" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+
+
+<line x1="800" y1="740" x2="800" y2="765" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="800.0" y="746.5" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">是</tspan>
+</text>
+
+<line x1="800" y1="895" x2="800" y2="930" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="800.0" y="906.5" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">是</tspan>
+</text>
+
+<line x1="895" y1="420" x2="1140" y2="640" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1017.5" y="524.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1017.5" dy="0">否</tspan>
+</text>
+
+<line x1="895" y1="680" x2="1140" y2="665" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1017.5" y="666.5" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1017.5" dy="0">否</tspan>
+</text>
+
+<line x1="915" y1="830" x2="1140" y2="690" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1027.5" y="754.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1027.5" dy="0">否</tspan>
+</text>
+
+</svg>

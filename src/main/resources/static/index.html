@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>图书馆借阅后台</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #1f2937; background: #f5f7fb; font-family: Arial, "Microsoft YaHei", sans-serif; }
+    input, select, button { font: inherit; }
+    .login { display: grid; place-items: center; min-height: 100vh; padding: 24px; }
+    .login form { width: min(380px, 100%); display: grid; gap: 12px; padding: 24px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .login h1 { margin: 0 0 8px; font-size: 24px; }
+    .app { display: none; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    aside { background: #263238; color: #fff; padding: 20px 16px; }
+    aside h1 { margin: 0 0 24px; font-size: 20px; }
+    nav { display: grid; gap: 8px; }
+    nav button { width: 100%; border: 0; border-radius: 6px; padding: 10px 12px; color: #d7dee4; background: transparent; text-align: left; cursor: pointer; }
+    nav button.active, nav button:hover { color: #fff; background: #3f5864; }
+    main { padding: 24px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    header h2 { margin: 0; font-size: 24px; }
+    .message { min-height: 24px; color: #0f766e; font-size: 14px; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .toolbar, form.panel, .cards, .hint { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; padding: 14px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .cards { align-items: stretch; }
+    .card { min-width: 160px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f8fafc; }
+    .card strong { display: block; margin-top: 6px; font-size: 24px; }
+    .hint { color: #475569; }
+    input, select { min-width: 150px; height: 36px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px; background: #fff; }
+    button.action { height: 36px; border: 0; border-radius: 6px; padding: 0 14px; color: #fff; background: #2563eb; cursor: pointer; }
+    button.secondary { background: #475569; }
+    button.danger { background: #dc2626; }
+    button.warn { background: #b45309; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .table-wrap { overflow-x: auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; font-size: 14px; white-space: nowrap; }
+    th { background: #f8fafc; color: #475569; font-weight: 700; }
+    tr:last-child td { border-bottom: 0; }
+    .ops { display: flex; gap: 6px; }
+    .pager { display: flex; align-items: center; gap: 10px; justify-content: flex-end; margin-top: 10px; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .subhead { margin: 4px 0 10px; font-size: 16px; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, .45); }
+    .modal-backdrop.active { display: flex; }
+    .modal { width: min(920px, 100%); max-height: 90vh; overflow: auto; background: #fff; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 24px 70px rgba(15, 23, 42, .25); }
+    .modal-head { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; background: #fff; border-bottom: 1px solid #e5e7eb; }
+    .modal-head h3 { margin: 0; font-size: 18px; }
+    .modal-body { padding: 16px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .detail-item { padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; background: #f8fafc; }
+    .detail-item span { display: block; margin-bottom: 4px; color: #64748b; font-size: 12px; }
+    .modal-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .modal-form label { display: grid; gap: 6px; color: #475569; font-size: 13px; }
+    .modal-form input, .modal-form select, .modal-form textarea { width: 100%; min-width: 0; }
+    textarea { min-height: 72px; resize: vertical; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; font: inherit; }
+    .wide { grid-column: 1 / -1; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+    .mini-table { min-width: 0; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .split { grid-template-columns: 1fr; }
+      .detail-grid, .modal-form { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="login" id="loginView">
+  <form onsubmit="login(event)">
+    <h1>管理员登录</h1>
+    <input id="loginUsername" placeholder="账号" value="admin" required>
+    <input id="loginPassword" type="password" placeholder="密码" value="123456" required>
+    <button class="action" type="submit">登录</button>
+    <div class="message" id="loginMessage">默认账号 admin / 123456</div>
+  </form>
+</div>
+
+<div class="app" id="appView">
+  <aside>
+    <h1>图书馆后台</h1>
+    <nav>
+      <button class="active" data-page="dashboard">工作台</button>
+      <button data-page="categories">图书分类</button>
+      <button data-page="books">图书管理</button>
+      <button data-page="readers">读者管理</button>
+      <button data-page="borrow">借书办理</button>
+      <button data-page="return">还书办理</button>
+      <button data-page="records">借阅记录</button>
+      <button data-page="overdue">逾期查询</button>
+    </nav>
+  </aside>
+
+  <main>
+    <header>
+      <h2 id="pageTitle">工作台</h2>
+      <div>
+        <span class="message" id="message"></span>
+        <button class="action secondary" onclick="logout()">退出</button>
+      </div>
+    </header>
+
+    <section class="section active" id="dashboard">
+      <div class="cards" id="dashboardCards"></div>
+      <div class="toolbar">
+        <button class="action" onclick="goPage('borrow')">办理借书</button>
+        <button class="action" onclick="goPage('return')">办理还书</button>
+        <button class="action" onclick="goPage('books')">新增图书</button>
+        <button class="action" onclick="goPage('readers')">新增读者</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>记录编号</th><th>读者</th><th>图书</th><th>借阅日期</th><th>应还日期</th><th>状态</th></tr></thead>
+          <tbody id="dashboardRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="categories">
+      <div class="toolbar">
+        <input id="categoryKeyword" placeholder="分类名称">
+        <button class="action" onclick="loadCategories(0)">查询</button>
+        <button class="action secondary" onclick="resetCategories()">重置</button>
+      </div>
+      <form class="panel" onsubmit="addCategory(event)">
+        <input id="categoryName" placeholder="分类名称" required>
+        <input id="categoryDescription" placeholder="分类说明">
+        <button class="action" type="submit">新增分类</button>
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>名称</th><th>说明</th><th>图书数量</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody id="categoryRows"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="categoryPager"></div>
+    </section>
+
+    <section class="section" id="books">
+      <div class="toolbar">
+        <input id="bookKeyword" placeholder="ISBN / 书名 / 作者">
+        <input id="bookCategoryFilter" placeholder="分类">
+        <select id="bookStatusFilter"><option value="">全部状态</option><option value="enabled">启用</option><option value="disabled">停用</option></select>
+        <button class="action" onclick="loadBooks(0)">查询</button>
+        <button class="action secondary" onclick="resetBooks()">重置</button>
+      </div>
+      <form class="panel" onsubmit="addBook(event)">
+        <input id="bookIsbn" placeholder="ISBN" required>
+        <input id="bookTitle" placeholder="书名" required>
+        <input id="bookAuthor" placeholder="作者" required>
+        <input id="bookPublisher" placeholder="出版社">
+        <input id="bookPublishDate" type="date">
+        <input id="bookCategory" placeholder="分类" required>
+        <input id="bookShelf" placeholder="书架位置">
+        <select id="bookStatus"><option value="enabled">启用</option><option value="disabled">停用</option></select>
+        <input id="bookTotal" type="number" min="1" placeholder="馆藏数量" required>
+        <button class="action" type="submit">新增图书</button>
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>ISBN</th><th>书名</th><th>作者</th><th>分类</th><th>书架</th><th>状态</th><th>总数</th><th>可借</th><th>操作</th></tr></thead>
+          <tbody id="bookRows"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="bookPager"></div>
+    </section>
+
+    <section class="section" id="readers">
+      <div class="toolbar">
+        <input id="readerKeyword" placeholder="借阅证号 / 姓名 / 手机号">
+        <select id="readerStatusFilter"><option value="">全部状态</option><option value="enabled">启用</option><option value="disabled">停用</option></select>
+        <button class="action" onclick="loadReaders(0)">查询</button>
+        <button class="action secondary" onclick="resetReaders()">重置</button>
+      </div>
+      <form class="panel" onsubmit="addReader(event)">
+        <input id="readerUsername" placeholder="借阅证号" required>
+        <input id="readerName" placeholder="姓名" required>
+        <input id="readerPhone" placeholder="手机号" required>
+        <input id="readerRemark" placeholder="备注">
+        <button class="action" type="submit">新增读者</button>
+      </form>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>借阅证号</th><th>姓名</th><th>手机号</th><th>状态</th><th>当前借阅</th><th>注册时间</th><th>操作</th></tr></thead>
+          <tbody id="readerRows"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="readerPager"></div>
+    </section>
+
+    <section class="section" id="borrow">
+      <div class="hint" id="borrowSelected">请选择读者和图书。应还日期默认 30 天后，可以手动调整。</div>
+      <form class="panel" onsubmit="borrowBook(event)">
+        <input id="borrowUserId" type="number" min="1" placeholder="已选读者ID" required readonly>
+        <input id="borrowBookId" type="number" min="1" placeholder="已选图书ID" required readonly>
+        <input id="borrowDueDate" type="date" required>
+        <button class="action" type="submit">确认借书</button>
+      </form>
+      <div class="split">
+        <div>
+          <h3 class="subhead">搜索读者</h3>
+          <div class="toolbar">
+            <input id="borrowReaderKeyword" placeholder="借阅证号 / 姓名">
+            <button class="action" onclick="loadBorrowReaders(0)">搜索</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>借阅证号</th><th>姓名</th><th>状态</th><th>当前借阅</th><th>操作</th></tr></thead>
+              <tbody id="borrowReaderRows"></tbody>
+            </table>
+          </div>
+          <div class="pager" id="borrowReaderPager"></div>
+        </div>
+        <div>
+          <h3 class="subhead">搜索图书</h3>
+          <div class="toolbar">
+            <input id="borrowBookKeyword" placeholder="ISBN / 书名 / 作者">
+            <button class="action" onclick="loadBorrowBooks(0)">搜索</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>ISBN</th><th>书名</th><th>作者</th><th>可借</th><th>操作</th></tr></thead>
+              <tbody id="borrowBookRows"></tbody>
+            </table>
+          </div>
+          <div class="pager" id="borrowBookPager"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="return">
+      <div class="toolbar">
+        <input id="returnKeyword" placeholder="记录编号 / 借阅证号 / 姓名 / ISBN / 书名">
+        <button class="action" onclick="loadReturnOptions(0)">查询未还记录</button>
+        <button class="action secondary" onclick="resetReturns()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>记录编号</th><th>借阅证号</th><th>读者</th><th>ISBN</th><th>图书</th><th>借阅日期</th><th>应还日期</th><th>是否逾期</th><th>操作</th></tr></thead>
+          <tbody id="returnRows"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="returnPager"></div>
+    </section>
+
+    <section class="section" id="records">
+      <div class="toolbar">
+        <input id="recordKeyword" placeholder="读者 / 图书 / 编号">
+        <select id="recordStatus"><option value="">全部状态</option><option value="borrowed">借阅中</option><option value="returned">已归还</option><option value="overdue">已逾期</option></select>
+        <input id="borrowStart" type="date">
+        <input id="borrowEnd" type="date">
+        <input id="dueStart" type="date">
+        <input id="dueEnd" type="date">
+        <button class="action" onclick="loadRecords(0)">查询记录</button>
+        <button class="action secondary" onclick="resetRecords()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>记录编号</th><th>借阅证号</th><th>读者</th><th>ISBN</th><th>图书</th><th>借阅日期</th><th>应还日期</th><th>归还日期</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody id="recordRows"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="recordPager"></div>
+    </section>
+
+    <section class="section" id="overdue">
+      <div class="toolbar">
+        <input id="overdueKeyword" placeholder="读者 / 图书 / 编号">
+        <button class="action" onclick="loadOverdue(0)">查询逾期</button>
+        <button class="action secondary" onclick="resetOverdue()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>记录编号</th><th>借阅证号</th><th>读者</th><th>ISBN</th><th>图书</th><th>应还日期</th><th>逾期天数</th><th>操作</th></tr></thead>
+          <tbody id="overdueRows"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="overduePager"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button class="action secondary" onclick="closeModal()">关闭</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+  const pageNames = { dashboard: "工作台", categories: "图书分类", books: "图书管理", readers: "读者管理", borrow: "借书办理", return: "还书办理", records: "借阅记录", overdue: "逾期查询" };
+  const state = { categories: 0, books: 0, readers: 0, records: 0, overdue: 0, borrowReaders: 0, borrowBooks: 0, returns: 0 };
+  const pageSize = 10;
+  let selectedReader = null;
+  let selectedBook = null;
+  let lastClickedButton = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("button");
+    if (button) lastClickedButton = button;
+  }, true);
+
+  document.querySelectorAll("nav button").forEach((button) => {
+    button.addEventListener("click", () => goPage(button.dataset.page));
+  });
+
+  function goPage(page) {
+    document.querySelectorAll("nav button").forEach((item) => item.classList.toggle("active", item.dataset.page === page));
+    document.querySelectorAll(".section").forEach((item) => item.classList.toggle("active", item.id === page));
+    $("pageTitle").textContent = pageNames[page];
+    location.hash = page;
+    if (page === "dashboard") loadDashboard();
+    if (page === "categories") loadCategories(state.categories);
+    if (page === "books") loadBooks(state.books);
+    if (page === "readers") loadReaders(state.readers);
+    if (page === "borrow") { loadBorrowReaders(0); loadBorrowBooks(0); setDefaultDueDate(); }
+    if (page === "return") loadReturnOptions(state.returns);
+    if (page === "records") loadRecords(state.records);
+    if (page === "overdue") loadOverdue(state.overdue);
+  }
+
+  function showMessage(text, isError = false) {
+    $("message").textContent = text;
+    $("message").style.color = isError ? "#dc2626" : "#0f766e";
+  }
+
+  function setButtonLoading(button, text = "处理中...") {
+    if (!button) return () => {};
+    if (button.dataset.loading === "true") return null;
+
+    const originalText = button.textContent;
+    button.dataset.loading = "true";
+    button.disabled = true;
+    button.textContent = text;
+
+    return () => {
+      button.disabled = false;
+      button.textContent = originalText;
+      delete button.dataset.loading;
+    };
+  }
+
+  async function withSubmitLoading(event, text, task) {
+    event.preventDefault();
+    const button = event.submitter || event.target.querySelector('button[type="submit"]');
+    const finishLoading = setButtonLoading(button, text);
+    if (!finishLoading) return;
+
+    try {
+      await task();
+    } finally {
+      finishLoading();
+    }
+  }
+
+  async function withActionLoading(text, task) {
+    const finishLoading = setButtonLoading(lastClickedButton, text);
+    if (!finishLoading) return;
+
+    try {
+      await task();
+    } finally {
+      finishLoading();
+    }
+  }
+
+  function loadingRow(tbodyId, cols) {
+    emptyRow(tbodyId, cols, "加载中...");
+  }
+
+  async function request(url, options = {}) {
+    const response = await fetch(url, options);
+    const text = await response.text();
+    let data = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch (error) {
+        data = { error: "请求失败，请稍后重试" };
+      }
+    }
+    if (response.status === 401) {
+      $("appView").style.display = "none";
+      $("loginView").style.display = "grid";
+    }
+    if (!response.ok) throw new Error(data && (data.message || data.error) ? (data.message || data.error) : "请求失败");
+    return data;
+  }
+
+  function query(values) {
+    const params = new URLSearchParams();
+    Object.entries(values).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && String(value).trim() !== "") params.set(key, value);
+    });
+    return params.toString();
+  }
+
+  function list(data) {
+    return Array.isArray(data) ? data : (data.content || []);
+  }
+
+  function pager(id, data, loader) {
+    const totalPages = data.totalPages || 1;
+    const number = data.number || 0;
+    $(id).innerHTML = `
+      <button class="action secondary" ${number <= 0 ? "disabled" : ""} onclick="${loader}(${number - 1})">上一页</button>
+      <span>第 ${number + 1} / ${totalPages} 页，共 ${data.totalElements || 0} 条</span>
+      <button class="action secondary" ${number >= totalPages - 1 ? "disabled" : ""} onclick="${loader}(${number + 1})">下一页</button>
+    `;
+  }
+
+  function emptyRow(tbodyId, cols, text = "暂无数据") {
+    $(tbodyId).innerHTML = `<tr><td colspan="${cols}">${text}</td></tr>`;
+  }
+
+  function statusText(status) {
+    if (status === "enabled") return "启用";
+    if (status === "disabled") return "停用";
+    if (status === "borrowed") return "借阅中";
+    if (status === "returned") return "已归还";
+    if (status === "overdue") return "已逾期";
+    return status || "";
+  }
+
+  function openModal(title, body) {
+    $("modalTitle").textContent = title;
+    $("modalBody").innerHTML = body;
+    $("modalBackdrop").classList.add("active");
+  }
+
+  function closeModal() {
+    $("modalBackdrop").classList.remove("active");
+    $("modalBody").innerHTML = "";
+  }
+
+  function h(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+  }
+
+  function detailGrid(items) {
+    return `<div class="detail-grid">${items.map(([label, value]) => `<div class="detail-item"><span>${h(label)}</span>${h(value || "-")}</div>`).join("")}</div>`;
+  }
+
+  function recordsTable(records, emptyText = "暂无借阅记录") {
+    if (!records || !records.length) {
+      return `<div class="hint">${emptyText}</div>`;
+    }
+    return `<div class="table-wrap"><table class="mini-table">
+      <thead><tr><th>记录编号</th><th>借阅证号</th><th>读者</th><th>ISBN</th><th>图书</th><th>借阅日期</th><th>应还日期</th><th>归还日期</th><th>状态</th></tr></thead>
+      <tbody>${records.map((r) => `<tr><td>${r.id}</td><td>${h(r.readerCard)}</td><td>${h(r.readerName)}</td><td>${h(r.isbn)}</td><td>${h(r.bookTitle)}</td><td>${h(r.borrowDate)}</td><td>${h(r.dueDate)}</td><td>${h(r.returnDate)}</td><td>${statusText(r.status)}</td></tr>`).join("")}</tbody>
+    </table></div>`;
+  }
+
+  async function login(event) {
+    await withSubmitLoading(event, "登录中...", async () => {
+      try {
+        const username = $("loginUsername").value.trim();
+        const password = $("loginPassword").value.trim();
+        if (!username || !password) throw new Error("账号和密码不能为空");
+        await request(`/auth/login?${query({ username, password })}`, { method: "POST" });
+        $("loginView").style.display = "none";
+        $("appView").style.display = "grid";
+        goPage(location.hash.replace("#", "") || "dashboard");
+      } catch (error) {
+        $("loginMessage").textContent = error.message;
+        $("loginMessage").style.color = "#dc2626";
+      }
+    });
+  }
+
+  async function logout() {
+    await withActionLoading("退出中...", async () => {
+      await request("/auth/logout", { method: "POST" });
+      location.reload();
+    });
+  }
+
+  async function loadDashboard() {
+    $("dashboardCards").innerHTML = `<div class="card">加载中<strong>...</strong></div>`;
+    loadingRow("dashboardRows", 6);
+    try {
+      const data = await request("/dashboard");
+      $("dashboardCards").innerHTML = `
+        <div class="card">图书种类<strong>${data.bookTypes}</strong></div>
+        <div class="card">馆藏总册<strong>${data.totalBooks}</strong></div>
+        <div class="card">当前可借<strong>${data.availableBooks}</strong></div>
+        <div class="card">当前借出<strong>${data.borrowedBooks}</strong></div>
+        <div class="card">读者数量<strong>${data.readers}</strong></div>
+        <div class="card">逾期未还<strong>${data.overdue}</strong></div>
+      `;
+      const records = data.recentRecords || [];
+      if (!records.length) return emptyRow("dashboardRows", 6);
+      $("dashboardRows").innerHTML = records.map((r) => `<tr><td>${r.id}</td><td>${r.readerName || ""}</td><td>${r.bookTitle || ""}</td><td>${r.borrowDate || ""}</td><td>${r.dueDate || ""}</td><td>${statusText(r.status)}</td></tr>`).join("");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  async function loadCategories(page = 0) {
+    state.categories = page;
+    loadingRow("categoryRows", 6);
+    $("categoryPager").innerHTML = "";
+    try {
+      const data = await request(`/categories?${query({ page, size: pageSize, keyword: $("categoryKeyword").value.trim() })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("categoryRows", 6);
+      else $("categoryRows").innerHTML = items.map((item) => `<tr><td>${item.id}</td><td>${item.name}</td><td>${item.description || ""}</td><td>${item.bookCount || 0}</td><td>${item.createdAt || ""}</td><td class="ops"><button class="action secondary" onclick="editCategory(${item.id}, '${escapeAttr(item.name)}', '${escapeAttr(item.description || "")}')">编辑</button><button class="action danger" onclick="deleteCategory(${item.id})">删除</button></td></tr>`).join("");
+      pager("categoryPager", data, "loadCategories");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  async function addCategory(event) {
+    await withSubmitLoading(event, "新增中...", async () => {
+      try {
+        await request("/categories", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ name: $("categoryName").value, description: $("categoryDescription").value }) });
+        event.target.reset();
+        loadCategories(0);
+        showMessage("新增分类成功");
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function editCategory(id, oldName, oldDescription) {
+    openModal("编辑分类", `
+      <form class="modal-form" onsubmit="saveCategoryEdit(event, ${id})">
+        <label>分类名称<input id="editCategoryName" value="${h(oldName)}" required></label>
+        <label class="wide">分类说明<textarea id="editCategoryDescription">${h(oldDescription)}</textarea></label>
+        <div class="modal-actions wide">
+          <button class="action secondary" type="button" onclick="closeModal()">取消</button>
+          <button class="action" type="submit">保存修改</button>
+        </div>
+      </form>
+    `);
+  }
+
+  async function saveCategoryEdit(event, id) {
+    await withSubmitLoading(event, "保存中...", async () => {
+      const name = $("editCategoryName").value;
+      const description = $("editCategoryDescription").value;
+      try {
+        await request(`/categories/${id}`, { method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ name, description }) });
+        closeModal();
+        loadCategories(state.categories);
+        showMessage("编辑分类成功");
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function deleteCategory(id) {
+    if (!confirm("确认删除分类吗？")) return;
+    await withActionLoading("删除中...", async () => {
+      try { await request(`/categories/${id}`, { method: "DELETE" }); loadCategories(0); showMessage("删除分类成功"); } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  function resetCategories() { $("categoryKeyword").value = ""; loadCategories(0); }
+
+  async function loadBooks(page = 0) {
+    state.books = page;
+    loadingRow("bookRows", 10);
+    $("bookPager").innerHTML = "";
+    try {
+      const data = await request(`/books?${query({ page, size: pageSize, keyword: $("bookKeyword").value.trim(), category: $("bookCategoryFilter").value.trim(), status: $("bookStatusFilter").value })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("bookRows", 10);
+      else $("bookRows").innerHTML = items.map((book) => `<tr><td>${book.id}</td><td>${book.isbn || ""}</td><td>${book.title || ""}</td><td>${book.author || ""}</td><td>${book.category || ""}</td><td>${book.shelfLocation || ""}</td><td>${statusText(book.status || "enabled")}</td><td>${book.totalCount}</td><td>${book.availableCount <= 0 ? "已借完" : book.availableCount}</td><td class="ops"><button class="action secondary" onclick="showBook(${book.id})">详情</button><button class="action secondary" onclick="editBook(${book.id})">编辑</button><button class="action warn" onclick="toggleBook(${book.id}, '${book.status === "disabled" ? "enable" : "disable"}')">${book.status === "disabled" ? "启用" : "停用"}</button><button class="action danger" onclick="deleteBook(${book.id})">删除</button></td></tr>`).join("");
+      pager("bookPager", data, "loadBooks");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  async function addBook(event) {
+    await withSubmitLoading(event, "新增中...", async () => {
+      try {
+        await request("/books", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ isbn: $("bookIsbn").value, title: $("bookTitle").value, author: $("bookAuthor").value, publisher: $("bookPublisher").value, publishDate: $("bookPublishDate").value || null, category: $("bookCategory").value, shelfLocation: $("bookShelf").value, status: $("bookStatus").value, totalCount: Number($("bookTotal").value) }) });
+        event.target.reset();
+        loadBooks(0);
+        showMessage("新增图书成功");
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function showBook(id) {
+    const data = await request(`/books/${id}`);
+    const book = data.book;
+    openModal(`图书详情：${book.title}`, `
+      ${detailGrid([
+        ["ID", book.id],
+        ["ISBN", book.isbn],
+        ["书名", book.title],
+        ["作者", book.author],
+        ["出版社", book.publisher],
+        ["出版日期", book.publishDate],
+        ["分类", book.category],
+        ["书架位置", book.shelfLocation],
+        ["状态", statusText(book.status || "enabled")],
+        ["馆藏总数", book.totalCount],
+        ["当前可借", book.availableCount],
+        ["当前借出", data.borrowedCount]
+      ])}
+      <h3 class="subhead">最近借阅记录</h3>
+      ${recordsTable(data.recentBorrowRecords)}
+    `);
+  }
+
+  async function editBook(id) {
+    const data = await request(`/books/${id}`);
+    const book = data.book;
+    openModal(`编辑图书：${book.title}`, `
+      <form class="modal-form" onsubmit="saveBookEdit(event, ${id})">
+        <label>ISBN<input id="editBookIsbn" value="${h(book.isbn)}" required></label>
+        <label>书名<input id="editBookTitle" value="${h(book.title)}" required></label>
+        <label>作者<input id="editBookAuthor" value="${h(book.author)}" required></label>
+        <label>出版社<input id="editBookPublisher" value="${h(book.publisher)}"></label>
+        <label>出版日期<input id="editBookPublishDate" type="date" value="${h(book.publishDate)}"></label>
+        <label>分类<input id="editBookCategory" value="${h(book.category)}" required></label>
+        <label>书架位置<input id="editBookShelf" value="${h(book.shelfLocation)}"></label>
+        <label>状态<select id="editBookStatus"><option value="enabled" ${book.status !== "disabled" ? "selected" : ""}>启用</option><option value="disabled" ${book.status === "disabled" ? "selected" : ""}>停用</option></select></label>
+        <label>馆藏总数<input id="editBookTotal" type="number" min="1" value="${h(book.totalCount)}" required></label>
+        <div class="hint wide">当前已借出 ${h(data.borrowedCount)} 本，馆藏总数不能小于已借出数量。</div>
+        <div class="modal-actions wide">
+          <button class="action secondary" type="button" onclick="closeModal()">取消</button>
+          <button class="action" type="submit">保存修改</button>
+        </div>
+      </form>
+    `);
+  }
+
+  async function saveBookEdit(event, id) {
+    await withSubmitLoading(event, "保存中...", async () => {
+      const book = {
+        isbn: $("editBookIsbn").value,
+        title: $("editBookTitle").value,
+        author: $("editBookAuthor").value,
+        publisher: $("editBookPublisher").value,
+        publishDate: $("editBookPublishDate").value || null,
+        category: $("editBookCategory").value,
+        shelfLocation: $("editBookShelf").value,
+        status: $("editBookStatus").value,
+        totalCount: Number($("editBookTotal").value)
+      };
+      try {
+        await request(`/books/${id}`, { method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(book) });
+        closeModal();
+        loadBooks(state.books);
+        showMessage("编辑图书成功");
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function toggleBook(id, action) {
+    if (!confirm(`确认${action === "disable" ? "停用" : "启用"}这本图书吗？`)) return;
+    await withActionLoading("处理中...", async () => {
+      try { await request(`/books/${id}/${action}`, { method: "PUT" }); loadBooks(state.books); } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function deleteBook(id) {
+    if (!confirm("确认删除图书吗？")) return;
+    await withActionLoading("删除中...", async () => {
+      try { await request(`/books/${id}`, { method: "DELETE" }); loadBooks(0); } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  function resetBooks() {
+    $("bookKeyword").value = "";
+    $("bookCategoryFilter").value = "";
+    $("bookStatusFilter").value = "";
+    loadBooks(0);
+  }
+
+  async function loadReaders(page = 0) {
+    state.readers = page;
+    loadingRow("readerRows", 8);
+    $("readerPager").innerHTML = "";
+    try {
+      const data = await request(`/readers?${query({ page, size: pageSize, keyword: $("readerKeyword").value.trim(), status: $("readerStatusFilter").value })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("readerRows", 8);
+      else $("readerRows").innerHTML = await Promise.all(items.map(async (reader) => {
+        const detail = await request(`/readers/${reader.id}`);
+        return `<tr><td>${reader.id}</td><td>${reader.username}</td><td>${reader.realName || ""}</td><td>${reader.phone || ""}</td><td>${statusText(reader.status || "enabled")}</td><td>${detail.currentBorrowRecords.length}</td><td>${reader.createdAt || ""}</td><td class="ops"><button class="action secondary" onclick="showReader(${reader.id})">详情</button><button class="action secondary" onclick="editReader(${reader.id})">编辑</button><button class="action warn" onclick="toggleReader(${reader.id}, '${reader.status === "disabled" ? "enable" : "disable"}')">${reader.status === "disabled" ? "启用" : "停用"}</button></td></tr>`;
+      })).then((rows) => rows.join(""));
+      pager("readerPager", data, "loadReaders");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  async function addReader(event) {
+    await withSubmitLoading(event, "新增中...", async () => {
+      try {
+        await request("/readers", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ username: $("readerUsername").value, realName: $("readerName").value, phone: $("readerPhone").value, remark: $("readerRemark").value }) });
+        event.target.reset();
+        loadReaders(0);
+        showMessage("新增读者成功");
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function showReader(id) {
+    const data = await request(`/readers/${id}`);
+    const reader = data.reader;
+    openModal(`读者详情：${reader.realName}`, `
+      ${detailGrid([
+        ["ID", reader.id],
+        ["借阅证号", reader.username],
+        ["姓名", reader.realName],
+        ["手机号", reader.phone],
+        ["状态", statusText(reader.status || "enabled")],
+        ["注册时间", reader.createdAt],
+        ["备注", reader.remark]
+      ])}
+      <h3 class="subhead">当前借阅</h3>
+      ${recordsTable(data.currentBorrowRecords, "暂无当前借阅")}
+      <h3 class="subhead">历史借阅</h3>
+      ${recordsTable(data.historyRecords, "暂无历史借阅")}
+    `);
+  }
+
+  async function editReader(id) {
+    const data = await request(`/readers/${id}`);
+    const reader = data.reader;
+    openModal(`编辑读者：${reader.realName}`, `
+      <form class="modal-form" onsubmit="saveReaderEdit(event, ${id})">
+        <label>借阅证号<input id="editReaderUsername" value="${h(reader.username)}" required></label>
+        <label>姓名<input id="editReaderName" value="${h(reader.realName)}" required></label>
+        <label>手机号<input id="editReaderPhone" value="${h(reader.phone)}" required></label>
+        <label>状态<select id="editReaderStatus"><option value="enabled" ${reader.status !== "disabled" ? "selected" : ""}>启用</option><option value="disabled" ${reader.status === "disabled" ? "selected" : ""}>停用</option></select></label>
+        <label class="wide">备注<textarea id="editReaderRemark">${h(reader.remark)}</textarea></label>
+        <div class="modal-actions wide">
+          <button class="action secondary" type="button" onclick="closeModal()">取消</button>
+          <button class="action" type="submit">保存修改</button>
+        </div>
+      </form>
+    `);
+  }
+
+  async function saveReaderEdit(event, id) {
+    await withSubmitLoading(event, "保存中...", async () => {
+      const reader = {
+        username: $("editReaderUsername").value,
+        realName: $("editReaderName").value,
+        phone: $("editReaderPhone").value,
+        status: $("editReaderStatus").value,
+        remark: $("editReaderRemark").value
+      };
+      try {
+        await request(`/readers/${id}`, { method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(reader) });
+        closeModal();
+        loadReaders(state.readers);
+        showMessage("编辑读者成功");
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function toggleReader(id, action) {
+    if (!confirm(`确认${action === "disable" ? "停用" : "启用"}这个读者吗？`)) return;
+    await withActionLoading("处理中...", async () => {
+      try { await request(`/readers/${id}/${action}`, { method: "PUT" }); loadReaders(state.readers); } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  function resetReaders() {
+    $("readerKeyword").value = "";
+    $("readerStatusFilter").value = "";
+    loadReaders(0);
+  }
+
+  function setDefaultDueDate() {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    $("borrowDueDate").value = d.toISOString().slice(0, 10);
+  }
+
+  async function loadBorrowReaders(page = 0) {
+    state.borrowReaders = page;
+    loadingRow("borrowReaderRows", 6);
+    $("borrowReaderPager").innerHTML = "";
+    try {
+      const data = await request(`/borrow/reader-options?${query({ page, size: 5, keyword: $("borrowReaderKeyword").value.trim() })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("borrowReaderRows", 6);
+      else $("borrowReaderRows").innerHTML = items.map((reader) => `<tr><td>${reader.id}</td><td>${reader.cardNumber}</td><td>${reader.realName || ""}</td><td>${statusText(reader.status || "enabled")}</td><td>${reader.currentBorrowCount}</td><td><button class="action" onclick="selectReader(${reader.id}, '${escapeAttr(reader.cardNumber)}', '${escapeAttr(reader.realName || "")}')">选择</button></td></tr>`).join("");
+      pager("borrowReaderPager", data, "loadBorrowReaders");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  async function loadBorrowBooks(page = 0) {
+    state.borrowBooks = page;
+    loadingRow("borrowBookRows", 6);
+    $("borrowBookPager").innerHTML = "";
+    try {
+      const data = await request(`/borrow/book-options?${query({ page, size: 5, keyword: $("borrowBookKeyword").value.trim() })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("borrowBookRows", 6);
+      else $("borrowBookRows").innerHTML = items.map((book) => `<tr><td>${book.id}</td><td>${book.isbn}</td><td>${book.title}</td><td>${book.author || ""}</td><td>${book.availableCount <= 0 ? "已借完" : book.availableCount}</td><td><button class="action" ${book.availableCount <= 0 ? "disabled" : ""} onclick="selectBook(${book.id}, '${escapeAttr(book.isbn)}', '${escapeAttr(book.title)}')">选择</button></td></tr>`).join("");
+      pager("borrowBookPager", data, "loadBorrowBooks");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  function selectReader(id, card, name) {
+    selectedReader = `${card} ${name}`;
+    $("borrowUserId").value = id;
+    updateBorrowSelected();
+  }
+
+  function selectBook(id, isbn, title) {
+    selectedBook = `${isbn} ${title}`;
+    $("borrowBookId").value = id;
+    updateBorrowSelected();
+  }
+
+  function updateBorrowSelected() {
+    $("borrowSelected").textContent = `已选读者：${selectedReader || "未选择"}；已选图书：${selectedBook || "未选择"}`;
+  }
+
+  async function borrowBook(event) {
+    await withSubmitLoading(event, "办理中...", async () => {
+      try {
+        const record = await request(`/borrow?${query({ userId: $("borrowUserId").value, bookId: $("borrowBookId").value, dueDate: $("borrowDueDate").value })}`, { method: "POST" });
+        showMessage(`借书成功，记录编号：${record.id}，应还日期：${record.dueDate}`);
+        event.target.reset();
+        selectedReader = null;
+        selectedBook = null;
+        setDefaultDueDate();
+        updateBorrowSelected();
+        loadBorrowBooks(state.borrowBooks);
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  async function loadReturnOptions(page = 0) {
+    state.returns = page;
+    loadingRow("returnRows", 9);
+    $("returnPager").innerHTML = "";
+    try {
+      const data = await request(`/borrow/return-options?${query({ page, size: pageSize, keyword: $("returnKeyword").value.trim() })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("returnRows", 9);
+      else $("returnRows").innerHTML = items.map((r) => `<tr><td>${r.id}</td><td>${r.readerCard}</td><td>${r.readerName}</td><td>${r.isbn}</td><td>${r.bookTitle}</td><td>${r.borrowDate}</td><td>${r.dueDate}</td><td>${r.overdueDays > 0 ? `逾期 ${r.overdueDays} 天` : "否"}</td><td><button class="action" onclick="returnBook(${r.id})">确认还书</button></td></tr>`).join("");
+      pager("returnPager", data, "loadReturnOptions");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  async function returnBook(recordId) {
+    if (!confirm(`确认归还记录 ${recordId} 吗？`)) return;
+    await withActionLoading("还书中...", async () => {
+      try {
+        await request(`/borrow/return/${recordId}`, { method: "POST" });
+        showMessage("还书成功");
+        loadReturnOptions(state.returns);
+        loadRecords(0);
+      } catch (error) { showMessage(error.message, true); }
+    });
+  }
+
+  function resetReturns() { $("returnKeyword").value = ""; loadReturnOptions(0); }
+
+  async function loadRecords(page = 0) {
+    state.records = page;
+    loadingRow("recordRows", 10);
+    $("recordPager").innerHTML = "";
+    try {
+      const data = await request(`/borrow/records?${query({ page, size: pageSize, keyword: $("recordKeyword").value.trim(), status: $("recordStatus").value, borrowStart: $("borrowStart").value, borrowEnd: $("borrowEnd").value, dueStart: $("dueStart").value, dueEnd: $("dueEnd").value })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("recordRows", 10);
+      else $("recordRows").innerHTML = items.map(recordRow).join("");
+      pager("recordPager", data, "loadRecords");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  function resetRecords() {
+    ["recordKeyword", "recordStatus", "borrowStart", "borrowEnd", "dueStart", "dueEnd"].forEach((id) => $(id).value = "");
+    loadRecords(0);
+  }
+
+  async function loadOverdue(page = 0) {
+    state.overdue = page;
+    loadingRow("overdueRows", 8);
+    $("overduePager").innerHTML = "";
+    try {
+      const data = await request(`/borrow/overdue?${query({ page, size: pageSize, keyword: $("overdueKeyword").value.trim() })}`);
+      const items = list(data);
+      if (!items.length) emptyRow("overdueRows", 8);
+      else $("overdueRows").innerHTML = items.map((r) => `<tr><td>${r.id}</td><td>${r.readerCard}</td><td>${r.readerName}</td><td>${r.isbn}</td><td>${r.bookTitle}</td><td>${r.dueDate}</td><td>${r.overdueDays}</td><td><button class="action" onclick="returnBook(${r.id})">去还书</button></td></tr>`).join("");
+      pager("overduePager", data, "loadOverdue");
+    } catch (error) { showMessage(error.message, true); }
+  }
+
+  function resetOverdue() { $("overdueKeyword").value = ""; loadOverdue(0); }
+
+  function recordRow(r) {
+    return `<tr><td>${r.id}</td><td>${h(r.readerCard)}</td><td>${h(r.readerName)}</td><td>${h(r.isbn)}</td><td>${h(r.bookTitle)}</td><td>${h(r.borrowDate)}</td><td>${h(r.dueDate)}</td><td>${h(r.returnDate)}</td><td>${statusText(r.status)}</td><td><button class="action secondary" onclick="showRecord(${r.id})">详情</button></td></tr>`;
+  }
+
+  async function showRecord(id) {
+    const r = await request(`/borrow/records/${id}`);
+    openModal(`借阅记录详情：${r.id}`, `
+      ${detailGrid([
+        ["记录编号", r.id],
+        ["借阅证号", r.readerCard],
+        ["读者姓名", r.readerName],
+        ["读者手机号", r.readerPhone],
+        ["ISBN", r.isbn],
+        ["图书名称", r.bookTitle],
+        ["图书作者", r.bookAuthor],
+        ["借阅日期", r.borrowDate],
+        ["应还日期", r.dueDate],
+        ["归还日期", r.returnDate],
+        ["状态", statusText(r.status)],
+        ["逾期天数", r.overdueDays],
+        ["创建时间", r.createdAt],
+        ["快照保存", r.snapshotSaved ? "已保存" : "旧数据未保存"]
+      ])}
+    `);
+  }
+
+  function escapeAttr(value) {
+    return String(value || "").replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+  }
+
+  request("/auth/me").then((data) => {
+    if (data.loggedIn) {
+      $("loginView").style.display = "none";
+      $("appView").style.display = "grid";
+      goPage(location.hash.replace("#", "") || "dashboard");
+    }
+  }).catch(() => {});
+</script>
+</body>
+</html>

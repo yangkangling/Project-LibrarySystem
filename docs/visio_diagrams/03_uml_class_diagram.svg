@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+  </marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<rect x="40" y="28" width="1520" height="62" rx="10" fill="#1e40af"/>
+<text x="800" y="69" font-family="Microsoft YaHei, Arial" font-size="30" fill="#ffffff" text-anchor="middle">
+<tspan x="800" dy="0">图书馆借阅系统 - UML 类图</tspan>
+</text>
+
+<rect x="90" y="180" width="360" height="230" rx="8" fill="#eff6ff" stroke="#475569" stroke-width="2"/>
+<text x="270.0" y="214" font-family="Microsoft YaHei, Arial" font-size="16" fill="#0f172a" text-anchor="middle">
+<tspan x="270.0" dy="0">Controller 层</tspan>
+<tspan x="270.0" dy="26">AuthController</tspan>
+<tspan x="270.0" dy="26">DashboardController</tspan>
+<tspan x="270.0" dy="26">CategoryController</tspan>
+<tspan x="270.0" dy="26">BookController</tspan>
+<tspan x="270.0" dy="26">ReaderController</tspan>
+<tspan x="270.0" dy="26">BorrowController</tspan>
+</text>
+
+<rect x="620" y="210" width="360" height="170" rx="8" fill="#ecfdf5" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="244" font-family="Microsoft YaHei, Arial" font-size="16" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">Service 层</tspan>
+<tspan x="800.0" dy="26">BorrowService</tspan>
+<tspan x="800.0" dy="26">BorrowRecordViewService</tspan>
+</text>
+
+<rect x="1170" y="180" width="360" height="230" rx="8" fill="#fef9c3" stroke="#475569" stroke-width="2"/>
+<text x="1350.0" y="214" font-family="Microsoft YaHei, Arial" font-size="16" fill="#0f172a" text-anchor="middle">
+<tspan x="1350.0" dy="0">Repository 层</tspan>
+<tspan x="1350.0" dy="26">UserRepository</tspan>
+<tspan x="1350.0" dy="26">BookRepository</tspan>
+<tspan x="1350.0" dy="26">CategoryRepository</tspan>
+<tspan x="1350.0" dy="26">BorrowRecordRepository</tspan>
+</text>
+
+<rect x="455" y="560" width="670" height="200" rx="8" fill="#fff7ed" stroke="#475569" stroke-width="2"/>
+<text x="790.0" y="594" font-family="Microsoft YaHei, Arial" font-size="17" fill="#0f172a" text-anchor="middle">
+<tspan x="790.0" dy="0">Entity 实体</tspan>
+<tspan x="790.0" dy="26">User</tspan>
+<tspan x="790.0" dy="26">Book</tspan>
+<tspan x="790.0" dy="26">Category</tspan>
+<tspan x="790.0" dy="26">BorrowRecord</tspan>
+</text>
+
+<rect x="90" y="760" width="360" height="150" rx="8" fill="#f1f5f9" stroke="#475569" stroke-width="2"/>
+<text x="270.0" y="794" font-family="Microsoft YaHei, Arial" font-size="16" fill="#0f172a" text-anchor="middle">
+<tspan x="270.0" dy="0">Config / Advice</tspan>
+<tspan x="270.0" dy="26">LoginInterceptor</tspan>
+<tspan x="270.0" dy="26">WebConfig</tspan>
+<tspan x="270.0" dy="26">ApiExceptionHandler</tspan>
+</text>
+
+<line x1="450" y1="290" x2="620" y2="290" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="535.0" y="284.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="535.0" dy="0">调用</tspan>
+</text>
+
+<line x1="980" y1="290" x2="1170" y2="290" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1075.0" y="284.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1075.0" dy="0">访问</tspan>
+</text>
+
+<line x1="1350" y1="410" x2="980" y2="560" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1165.0" y="479.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1165.0" dy="0">操作</tspan>
+</text>
+
+<line x1="800" y1="380" x2="800" y2="560" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="800.0" y="464.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">返回视图</tspan>
+</text>
+
+<line x1="270" y1="760" x2="270" y2="410" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="270.0" y="579.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="270.0" dy="0">拦截/异常</tspan>
+</text>
+
+<rect x="120" y="950" width="1360" height="70" rx="8" fill="#f8fafc" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="984" font-family="Microsoft YaHei, Arial" font-size="17" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">分层说明：Controller 接收页面请求，Service 保证借还书事务一致性，Repository 访问数据库，Entity 映射数据表。</tspan>
+</text>
+
+</svg>

@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100">
+<defs>
+  <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+    <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+  </marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<rect x="40" y="28" width="1520" height="62" rx="10" fill="#1e40af"/>
+<text x="800" y="69" font-family="Microsoft YaHei, Arial" font-size="30" fill="#ffffff" text-anchor="middle">
+<tspan x="800" dy="0">图书馆借阅系统 - ER 数据库设计</tspan>
+</text>
+
+<rect x="90" y="180" width="330" height="300" rx="8" fill="#eff6ff" stroke="#475569" stroke-width="2"/>
+<text x="255.0" y="214" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="255.0" dy="0">USERS 用户表</tspan>
+<tspan x="255.0" dy="26">id PK</tspan>
+<tspan x="255.0" dy="26">username UK 借阅证/账号</tspan>
+<tspan x="255.0" dy="26">password</tspan>
+<tspan x="255.0" dy="26">real_name</tspan>
+<tspan x="255.0" dy="26">role</tspan>
+<tspan x="255.0" dy="26">phone</tspan>
+<tspan x="255.0" dy="26">status</tspan>
+<tspan x="255.0" dy="26">remark</tspan>
+<tspan x="255.0" dy="26">created_at</tspan>
+</text>
+
+<rect x="1180" y="150" width="330" height="360" rx="8" fill="#eff6ff" stroke="#475569" stroke-width="2"/>
+<text x="1345.0" y="184" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1345.0" dy="0">BOOKS 图书表</tspan>
+<tspan x="1345.0" dy="26">id PK</tspan>
+<tspan x="1345.0" dy="26">isbn UK</tspan>
+<tspan x="1345.0" dy="26">title</tspan>
+<tspan x="1345.0" dy="26">author</tspan>
+<tspan x="1345.0" dy="26">publisher</tspan>
+<tspan x="1345.0" dy="26">publish_date</tspan>
+<tspan x="1345.0" dy="26">category</tspan>
+<tspan x="1345.0" dy="26">shelf_location</tspan>
+<tspan x="1345.0" dy="26">status</tspan>
+<tspan x="1345.0" dy="26">total_count</tspan>
+<tspan x="1345.0" dy="26">available_count</tspan>
+<tspan x="1345.0" dy="26">created_at</tspan>
+</text>
+
+<rect x="1180" y="650" width="330" height="150" rx="8" fill="#ecfdf5" stroke="#475569" stroke-width="2"/>
+<text x="1345.0" y="684" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1345.0" dy="0">CATEGORIES 分类表</tspan>
+<tspan x="1345.0" dy="26">id PK</tspan>
+<tspan x="1345.0" dy="26">name UK</tspan>
+<tspan x="1345.0" dy="26">description</tspan>
+<tspan x="1345.0" dy="26">created_at</tspan>
+</text>
+
+<rect x="560" y="360" width="480" height="340" rx="8" fill="#fff7ed" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="394" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">BORROW_RECORDS 借阅记录表</tspan>
+<tspan x="800.0" dy="26">id PK</tspan>
+<tspan x="800.0" dy="26">user_id FK</tspan>
+<tspan x="800.0" dy="26">book_id FK</tspan>
+<tspan x="800.0" dy="26">reader_card/name/phone 快照</tspan>
+<tspan x="800.0" dy="26">book_isbn/title/author 快照</tspan>
+<tspan x="800.0" dy="26">borrow_date</tspan>
+<tspan x="800.0" dy="26">due_date</tspan>
+<tspan x="800.0" dy="26">return_date</tspan>
+<tspan x="800.0" dy="26">status</tspan>
+<tspan x="800.0" dy="26">created_at</tspan>
+</text>
+
+<line x1="420" y1="320" x2="560" y2="500" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="490.0" y="404.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="490.0" dy="0">1:N</tspan>
+</text>
+
+<line x1="1180" y1="330" x2="1040" y2="500" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1110.0" y="409.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1110.0" dy="0">1:N</tspan>
+</text>
+
+<line x1="1345" y1="510" x2="1345" y2="650" stroke="#475569" stroke-width="2.2" marker-end="url(#arrow)"/>
+<text x="1345.0" y="574.0" font-family="Microsoft YaHei, Arial" font-size="15" fill="#0f172a" text-anchor="middle">
+<tspan x="1345.0" dy="0">分类</tspan>
+</text>
+
+<rect x="120" y="900" width="1360" height="80" rx="8" fill="#f0fdfa" stroke="#475569" stroke-width="2"/>
+<text x="800.0" y="934" font-family="Microsoft YaHei, Arial" font-size="18" fill="#0f172a" text-anchor="middle">
+<tspan x="800.0" dy="0">说明：借阅记录保存读者和图书快照，保证后续修改图书/读者资料时，历史记录仍保留借阅当时的信息。</tspan>
+</text>
+
+</svg>

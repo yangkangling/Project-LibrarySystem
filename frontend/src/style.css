@@ -286,6 +286,10 @@ select {
   margin-bottom: 16px;
 }
 
+.drawer-body {
+  min-height: 220px;
+}
+
 .detail-item {
   min-width: 0;
   padding: 10px;

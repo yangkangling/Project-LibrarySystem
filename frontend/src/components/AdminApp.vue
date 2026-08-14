@@ -97,7 +97,7 @@ const readerDialog = reactive({
   editing: false,
   form: emptyReader()
 })
-const readerDrawer = reactive({ visible: false, data: null })
+const readerDrawer = reactive({ visible: false, loading: false, error: '', data: null })
 
 const readerOptions = ref([])
 const bookOptions = ref([])
@@ -378,8 +378,25 @@ async function toggleReader(row) {
 }
 
 async function openReaderDetail(row) {
-  readerDrawer.data = await http.get(`/readers/${row.id}`)
   readerDrawer.visible = true
+  readerDrawer.loading = true
+  readerDrawer.error = ''
+  readerDrawer.data = null
+  try {
+    readerDrawer.data = await http.get(`/readers/${row.id}`)
+  } catch (error) {
+    readerDrawer.error = error.message || '读者详情加载失败'
+    ElMessage.error(readerDrawer.error)
+  } finally {
+    readerDrawer.loading = false
+  }
+}
+
+function closeReaderDetail() {
+  readerDrawer.visible = false
+  readerDrawer.loading = false
+  readerDrawer.error = ''
+  readerDrawer.data = null
 }
 
 async function loadBorrowPage() {
@@ -554,6 +571,7 @@ function readerDetails(data) {
     ['借阅证号', reader.username],
     ['姓名', reader.realName],
     ['手机号', reader.phone],
+    ['当前借阅数', data?.currentBorrowCount],
     ['状态', statusText(reader.status)],
     ['备注', reader.remark],
     ['创建时间', formatDateTime(reader.createdAt)]
@@ -1071,17 +1089,19 @@ onMounted(async () => {
     </div>
   </el-drawer>
 
-  <el-drawer v-model="readerDrawer.visible" title="读者详情" size="62%">
-    <div v-if="readerDrawer.data">
+  <el-drawer v-model="readerDrawer.visible" title="读者详情" size="62%" append-to-body @closed="closeReaderDetail">
+    <div v-loading="readerDrawer.loading" class="drawer-body">
+      <el-empty v-if="readerDrawer.error" :description="readerDrawer.error" />
+      <div v-else-if="readerDrawer.data">
       <div class="detail-list">
         <div v-for="[label, value] in readerDetails(readerDrawer.data)" :key="label" class="detail-item">
           <span>{{ label }}</span>
-          <strong>{{ value || '-' }}</strong>
+          <strong>{{ value === 0 ? 0 : (value || '-') }}</strong>
         </div>
       </div>
       <div class="drawer-section">
         <h4>当前未还</h4>
-        <el-table :data="readerDrawer.data.currentBorrowRecords" border>
+        <el-table :data="readerDrawer.data.currentBorrowRecords || []" border empty-text="暂无未还记录">
           <el-table-column prop="bookTitle" label="图书" />
           <el-table-column prop="copyCode" label="单册编号" />
           <el-table-column prop="borrowDate" label="借阅日期" />
@@ -1091,7 +1111,7 @@ onMounted(async () => {
       </div>
       <div class="drawer-section">
         <h4>历史记录</h4>
-        <el-table :data="readerDrawer.data.historyRecords" border>
+        <el-table :data="readerDrawer.data.historyRecords || []" border empty-text="暂无历史记录">
           <el-table-column prop="bookTitle" label="图书" />
           <el-table-column prop="borrowDate" label="借阅日期" />
           <el-table-column prop="returnDate" label="归还日期" />
@@ -1102,6 +1122,7 @@ onMounted(async () => {
           </el-table-column>
         </el-table>
       </div>
+    </div>
     </div>
   </el-drawer>
 

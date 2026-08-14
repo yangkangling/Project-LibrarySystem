@@ -70,6 +70,7 @@ public class ReaderController {
         User user = findReader(id);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("reader", user);
+        result.put("currentBorrowCount", borrowRecordRepository.countByUserIdAndStatus(id, "borrowed"));
         result.put("currentBorrowRecords", borrowRecordRepository.findByStatus("borrowed").stream()
                 .filter(record -> id.equals(record.getUserId()))
                 .map(borrowRecordViewService::toView)

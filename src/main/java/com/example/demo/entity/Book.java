@@ -2,9 +2,12 @@ package com.example.demo.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
@@ -23,6 +26,13 @@ public class Book {
     private String publisher;
     private String category;
     private String status;
+
+    @Column(name = "category_id")
+    private Long categoryId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    private Category categoryInfo;
 
     @Column(name = "publish_date")
     private LocalDate publishDate;
@@ -85,6 +95,22 @@ public class Book {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public Category getCategoryInfo() {
+        return categoryInfo;
+    }
+
+    public void setCategoryInfo(Category categoryInfo) {
+        this.categoryInfo = categoryInfo;
     }
 
     public String getStatus() {

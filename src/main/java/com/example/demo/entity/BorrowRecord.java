@@ -23,6 +23,12 @@ public class BorrowRecord {
     @Column(name = "book_id")
     private Long bookId;
 
+    @Column(name = "book_copy_id")
+    private Long bookCopyId;
+
+    @Column(name = "storage_location_id")
+    private Long storageLocationId;
+
     @Column(name = "reader_card")
     private String readerCard;
 
@@ -40,6 +46,18 @@ public class BorrowRecord {
 
     @Column(name = "book_author")
     private String bookAuthor;
+
+    @Column(name = "copy_code")
+    private String copyCode;
+
+    @Column(name = "copy_shelf_location")
+    private String copyShelfLocation;
+
+    @Column(name = "shelf_location_snapshot")
+    private String shelfLocationSnapshot;
+
+    @Column(name = "batch_no")
+    private String batchNo;
 
     @Column(name = "borrow_date")
     private LocalDate borrowDate;
@@ -77,6 +95,22 @@ public class BorrowRecord {
 
     public void setBookId(Long bookId) {
         this.bookId = bookId;
+    }
+
+    public Long getBookCopyId() {
+        return bookCopyId;
+    }
+
+    public void setBookCopyId(Long bookCopyId) {
+        this.bookCopyId = bookCopyId;
+    }
+
+    public Long getStorageLocationId() {
+        return storageLocationId;
+    }
+
+    public void setStorageLocationId(Long storageLocationId) {
+        this.storageLocationId = storageLocationId;
     }
 
     public String getReaderCard() {
@@ -125,6 +159,38 @@ public class BorrowRecord {
 
     public void setBookAuthor(String bookAuthor) {
         this.bookAuthor = bookAuthor;
+    }
+
+    public String getCopyCode() {
+        return copyCode;
+    }
+
+    public void setCopyCode(String copyCode) {
+        this.copyCode = copyCode;
+    }
+
+    public String getCopyShelfLocation() {
+        return copyShelfLocation;
+    }
+
+    public void setCopyShelfLocation(String copyShelfLocation) {
+        this.copyShelfLocation = copyShelfLocation;
+    }
+
+    public String getShelfLocationSnapshot() {
+        return shelfLocationSnapshot;
+    }
+
+    public void setShelfLocationSnapshot(String shelfLocationSnapshot) {
+        this.shelfLocationSnapshot = shelfLocationSnapshot;
+    }
+
+    public String getBatchNo() {
+        return batchNo;
+    }
+
+    public void setBatchNo(String batchNo) {
+        this.batchNo = batchNo;
     }
 
     public LocalDate getBorrowDate() {

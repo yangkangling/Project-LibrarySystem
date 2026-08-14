@@ -4,6 +4,8 @@ import com.example.demo.entity.Book;
 import com.example.demo.entity.BorrowRecord;
 import com.example.demo.entity.User;
 import com.example.demo.repository.BookRepository;
+import com.example.demo.repository.BookCopyRepository;
+import com.example.demo.repository.StorageLocationRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,19 @@ import java.util.Objects;
 public class BorrowRecordViewService {
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final BookCopyRepository bookCopyRepository;
+    private final StorageLocationRepository storageLocationRepository;
 
-    public BorrowRecordViewService(UserRepository userRepository, BookRepository bookRepository) {
+    public BorrowRecordViewService(
+            UserRepository userRepository,
+            BookRepository bookRepository,
+            BookCopyRepository bookCopyRepository,
+            StorageLocationRepository storageLocationRepository
+    ) {
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
+        this.bookCopyRepository = bookCopyRepository;
+        this.storageLocationRepository = storageLocationRepository;
     }
 
     public Map<String, Object> toView(BorrowRecord record) {
@@ -37,6 +48,12 @@ public class BorrowRecordViewService {
         item.put("isbn", firstText(record.getBookIsbn(), currentBook == null ? "" : currentBook.getIsbn()));
         item.put("bookTitle", firstText(record.getBookTitle(), currentBook == null ? "" : currentBook.getTitle()));
         item.put("bookAuthor", firstText(record.getBookAuthor(), currentBook == null ? "" : currentBook.getAuthor()));
+        item.put("bookCopyId", record.getBookCopyId());
+        item.put("storageLocationId", record.getStorageLocationId());
+        item.put("copyCode", firstText(record.getCopyCode(), fallbackCopyCode(currentBook)));
+        item.put("shelfLocationSnapshot", firstText(record.getShelfLocationSnapshot(), fallbackStorageLocation(currentBook)));
+        item.put("copyShelfLocation", firstText(record.getShelfLocationSnapshot(), firstText(record.getCopyShelfLocation(), currentBook == null ? "" : currentBook.getShelfLocation())));
+        item.put("batchNo", record.getBatchNo());
         item.put("borrowDate", record.getBorrowDate());
         item.put("dueDate", record.getDueDate());
         item.put("returnDate", record.getReturnDate());
@@ -49,7 +66,7 @@ public class BorrowRecordViewService {
     public Map<String, Object> toDetail(BorrowRecord record) {
         Map<String, Object> detail = toView(record);
         detail.put("createdAt", record.getCreatedAt());
-        detail.put("snapshotSaved", hasText(record.getReaderCard()) || hasText(record.getBookTitle()));
+        detail.put("snapshotSaved", hasText(record.getReaderCard()) || hasText(record.getBookTitle()) || hasText(record.getShelfLocationSnapshot()));
         return detail;
     }
 
@@ -84,6 +101,25 @@ public class BorrowRecordViewService {
 
     private String firstText(String snapshotValue, String currentValue) {
         return hasText(snapshotValue) ? snapshotValue : currentValue;
+    }
+
+    private String fallbackCopyCode(Book currentBook) {
+        if (currentBook == null || currentBook.getId() == null) {
+            return "";
+        }
+        return bookCopyRepository.findByBookIdOrderByCopyCodeAsc(currentBook.getId()).stream()
+                .findFirst()
+                .map(copy -> copy.getCopyCode())
+                .orElse("");
+    }
+
+    private String fallbackStorageLocation(Book currentBook) {
+        if (currentBook == null || currentBook.getId() == null) {
+            return "";
+        }
+        return storageLocationRepository.findFirstByBookIdOrderByIdAsc(currentBook.getId())
+                .map(storageLocation -> firstText(storageLocation.getShelfLocation(), currentBook.getShelfLocation()))
+                .orElse(currentBook.getShelfLocation());
     }
 
     private boolean hasText(String value) {

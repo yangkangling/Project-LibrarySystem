@@ -15,6 +15,8 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
 
     boolean existsByUserIdAndBookIdAndStatus(Long userId, Long bookId, String status);
 
+    boolean existsByUserIdAndStatusAndDueDateBefore(Long userId, String status, LocalDate date);
+
     boolean existsByBookId(Long bookId);
 
     List<BorrowRecord> findByStatus(String status);
@@ -32,6 +34,8 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
     List<BorrowRecord> findByUserIdOrderByIdDesc(Long userId);
 
     List<BorrowRecord> findByBookIdOrderByIdDesc(Long bookId);
+
+    List<BorrowRecord> findByBookIdOrderByBorrowDateAscIdAsc(Long bookId);
 
     @Query("""
             select r from BorrowRecord r

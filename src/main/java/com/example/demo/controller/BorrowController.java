@@ -15,6 +15,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -137,7 +138,7 @@ public class BorrowController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "5") Integer size
     ) {
-        return bookRepository.search(keyword == null ? null : keyword.trim(), null, "enabled", PageRequest.of(page, size))
+        return bookRepository.search(keyword == null ? null : keyword.trim(), null, null, "enabled", PageRequest.of(page, size))
                 .map(book -> {
                     Map<String, Object> item = new LinkedHashMap<>();
                     item.put("id", book.getId());
@@ -175,14 +176,36 @@ public class BorrowController {
         return borrowService.borrowBook(userId, bookId, dueDate);
     }
 
+    @PostMapping("/batch")
+    public List<Map<String, Object>> borrowBatch(@RequestBody BatchBorrowRequest request) {
+        return borrowService.borrowBooks(request.userId(), request.bookIds(), null)
+                .stream()
+                .map(borrowRecordViewService::toView)
+                .toList();
+    }
+
     @PostMapping("/return/{recordId}")
     public BorrowRecord returnBook(@PathVariable Long recordId) {
         return borrowService.returnBook(recordId);
+    }
+
+    @PostMapping("/return")
+    public List<Map<String, Object>> returnBatch(@RequestBody BatchReturnRequest request) {
+        return borrowService.returnBooks(request.recordIds())
+                .stream()
+                .map(borrowRecordViewService::toView)
+                .toList();
     }
 
     private Page<Map<String, Object>> toPage(List<Map<String, Object>> records, int page, int size) {
         int from = Math.min(page * size, records.size());
         int to = Math.min(from + size, records.size());
         return new PageImpl<>(records.subList(from, to), PageRequest.of(page, size), records.size());
+    }
+
+    public record BatchBorrowRequest(Long userId, List<Long> bookIds) {
+    }
+
+    public record BatchReturnRequest(List<Long> recordIds) {
     }
 }

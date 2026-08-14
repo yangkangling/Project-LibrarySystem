@@ -49,12 +49,14 @@ erDiagram
     bigint id PK
     bigint user_id FK
     bigint book_id FK
+    bigint storage_location_id FK
     varchar reader_card
     varchar reader_name
     varchar reader_phone
     varchar book_isbn
     varchar book_title
     varchar book_author
+    varchar shelf_location_snapshot
     date borrow_date
     date due_date
     date return_date
@@ -62,8 +64,21 @@ erDiagram
     datetime created_at
   }
 
+  STORAGE_LOCATIONS {
+    bigint id PK
+    bigint book_id FK
+    varchar shelf_location
+    int total_count
+    int available_count
+    varchar remark
+    datetime created_at
+    datetime updated_at
+  }
+
   USERS ||--o{ BORROW_RECORDS : borrows
   BOOKS ||--o{ BORROW_RECORDS : borrowed_as
+  BOOKS ||--o{ STORAGE_LOCATIONS : stored_at
+  STORAGE_LOCATIONS ||--o{ BORROW_RECORDS : sourced_from
 ```
 
 ## 用例图
@@ -92,7 +107,7 @@ flowchart TD
   C -- 是 --> D["查询图书"]
   D --> E{"图书存在、启用且有库存？"}
   E -- 否 --> X
-  E -- 是 --> F{"读者未还数量小于5？"}
+  E -- 是 --> F{"读者未还数量小于3？"}
   F -- 否 --> X
   F -- 是 --> G{"未重复借同一本未还图书？"}
   G -- 否 --> X
@@ -131,6 +146,9 @@ POST   /categories
 PUT    /categories/{id}
 DELETE /categories/{id}
 
+GET    /storage-locations?page=0&size=10&keyword=A-03-02
+GET    /storage-locations/{id}
+
 GET    /books
 GET    /books?page=0&size=10&keyword=Java&category=计算机&status=enabled
 GET    /books/{id}
@@ -161,11 +179,12 @@ POST   /borrow/return/{recordId}
 - ISBN 使用唯一校验。
 - 借阅证号使用 `users.username`，并进行唯一校验。
 - `books.total_count` 表示馆藏总数，`books.available_count` 表示可借数量。
+- `storage_locations` 保存图书所在书架、该位置馆藏数和可借数；当前版本每本图书默认维护一条主书架存储记录。
 - 借书和还书方法使用 `@Transactional`，保证记录和库存一起成功或一起失败。
-- 借阅记录保存读者证号、读者姓名、手机号、ISBN、书名和作者快照，避免后续资料修改影响历史记录展示。
+- 借阅记录保存读者证号、读者姓名、手机号、ISBN、书名、作者和书架位置快照，避免后续资料修改影响历史记录展示。
 - 除首页和 `/auth/**` 外，后台接口需要登录后访问。
 - `users.status=disabled` 的读者不能新借书。
 - `books.status=disabled` 的图书不能新借书，但未还记录仍可归还。
-- 同一读者最多 5 本未还。
+- 同一读者最多 3 本未还。
 - 同一读者不能重复借同一本未归还图书。
 - 当前日期超过 `due_date` 且状态仍为 `borrowed` 时，会出现在逾期查询中。

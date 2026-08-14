@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,15 +78,18 @@ public class ReaderController {
     @PostMapping
     public User add(@RequestBody User user) {
         validateReader(user);
-        if (userRepository.existsByUsername(user.getUsername().trim())) {
-            throw new RuntimeException("借阅证号已存在，请更换后再保存");
+        validatePassword(user.getPassword(), true);
+        if (userRepository.existsByPhoneAndRole(user.getPhone().trim(), "reader")) {
+            throw new RuntimeException("该手机号已办理读者账号，请直接登录或联系管理员");
         }
 
-        user.setUsername(user.getUsername().trim());
-        user.setRealName(user.getRealName().trim());
+        user.setUsername(nextReaderCard());
+        user.setRealName(user.getRealName() == null || user.getRealName().trim().isEmpty()
+                ? maskPhone(user.getPhone().trim())
+                : user.getRealName().trim());
         user.setPhone(user.getPhone().trim());
         user.setRemark(user.getRemark());
-        user.setPassword("123456");
+        user.setPassword(user.getPassword().trim());
         user.setRole("reader");
         user.setStatus("enabled");
         user.setCreatedAt(LocalDateTime.now());
@@ -93,22 +97,40 @@ public class ReaderController {
         return userRepository.save(user);
     }
 
+    @PostMapping("/register")
+    public Map<String, Object> register(@RequestBody RegisterRequest request) {
+        User user = new User();
+        user.setPhone(request.phone());
+        user.setPassword(request.password());
+        user.setRealName(maskPhone(request.phone()));
+        User saved = add(user);
+        return Map.of(
+                "message", "注册成功",
+                "readerCard", saved.getUsername(),
+                "realName", saved.getRealName()
+        );
+    }
+
     @PutMapping("/{id}")
     public User update(@PathVariable Long id, @RequestBody User input) {
         User user = findReader(id);
         validateReader(input);
-
-        userRepository.findByUsername(input.getUsername().trim()).ifPresent(existing -> {
+        userRepository.findByPhoneAndRole(input.getPhone().trim(), "reader").ifPresent(existing -> {
             if (!existing.getId().equals(id)) {
-                throw new RuntimeException("借阅证号已存在，请更换后再保存");
+                throw new RuntimeException("该手机号已办理其他读者账号，请更换手机号");
             }
         });
 
-        user.setUsername(input.getUsername().trim());
-        user.setRealName(input.getRealName().trim());
+        user.setRealName(input.getRealName() == null || input.getRealName().trim().isEmpty()
+                ? user.getRealName()
+                : input.getRealName().trim());
         user.setPhone(input.getPhone().trim());
         user.setRemark(input.getRemark());
         user.setStatus(input.getStatus() == null ? "enabled" : input.getStatus());
+        if (input.getPassword() != null && !input.getPassword().trim().isEmpty()) {
+            validatePassword(input.getPassword(), false);
+            user.setPassword(input.getPassword().trim());
+        }
 
         return userRepository.save(user);
     }
@@ -136,12 +158,6 @@ public class ReaderController {
     }
 
     private void validateReader(User user) {
-        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
-            throw new RuntimeException("借阅证号不能为空");
-        }
-        if (user.getRealName() == null || user.getRealName().trim().isEmpty()) {
-            throw new RuntimeException("读者姓名不能为空");
-        }
         if (user.getPhone() == null || user.getPhone().trim().isEmpty()) {
             throw new RuntimeException("手机号不能为空");
         }
@@ -150,7 +166,48 @@ public class ReaderController {
         }
     }
 
+    private void validatePassword(String password, boolean required) {
+        if (password == null || password.trim().isEmpty()) {
+            if (required) {
+                throw new RuntimeException("读者密码不能为空");
+            }
+            return;
+        }
+        if (password.trim().length() < 6) {
+            throw new RuntimeException("读者密码至少 6 位");
+        }
+    }
+
     private String normalize(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private synchronized String nextReaderCard() {
+        String prefix = "R" + Year.now().getValue();
+        List<User> readers = userRepository.findByRoleAndUsernameStartingWithOrderByUsernameDesc("reader", prefix);
+        int nextNumber = 1;
+        if (!readers.isEmpty()) {
+            String latest = readers.get(0).getUsername();
+            if (latest != null && latest.matches("^" + prefix + "\\d{4}$")) {
+                nextNumber = Integer.parseInt(latest.substring(prefix.length())) + 1;
+            }
+        }
+
+        String card;
+        do {
+            card = prefix + String.format("%04d", nextNumber++);
+        } while (userRepository.existsByUsername(card));
+        return card;
+    }
+
+    private String maskPhone(String phone) {
+        if (phone == null || phone.trim().length() < 7) {
+            return "读者";
+        }
+        String value = phone.trim();
+        return "读者" + value.substring(value.length() - 4);
+    }
+
+    public record RegisterRequest(String phone, String password) {
     }
 }

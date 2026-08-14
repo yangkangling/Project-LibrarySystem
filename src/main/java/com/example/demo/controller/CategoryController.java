@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -50,7 +51,7 @@ public class CategoryController {
         Category category = findCategory(id);
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("category", category);
-        result.put("bookCount", bookRepository.countByCategory(category.getName()));
+        result.put("bookCount", countBooks(category));
         return result;
     }
 
@@ -78,15 +79,18 @@ public class CategoryController {
             }
         });
 
+        String oldName = category.getName();
         category.setName(nextName);
         category.setDescription(input.getDescription());
-        return categoryRepository.save(category);
+        Category saved = categoryRepository.save(category);
+        syncBookCategoryName(saved, oldName);
+        return saved;
     }
 
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id) {
         Category category = findCategory(id);
-        if (bookRepository.existsByCategory(category.getName())) {
+        if (bookRepository.existsByCategoryIdOrCategory(category.getId(), category.getName())) {
             throw new RuntimeException("该分类下已有图书，不能删除，请先调整相关图书分类");
         }
         categoryRepository.deleteById(id);
@@ -103,8 +107,21 @@ public class CategoryController {
         item.put("name", category.getName());
         item.put("description", category.getDescription());
         item.put("createdAt", category.getCreatedAt());
-        item.put("bookCount", bookRepository.countByCategory(category.getName()));
+        item.put("bookCount", countBooks(category));
         return item;
+    }
+
+    private long countBooks(Category category) {
+        return bookRepository.countByCategoryIdOrCategory(category.getId(), category.getName());
+    }
+
+    private void syncBookCategoryName(Category category, String oldName) {
+        List<com.example.demo.entity.Book> books = bookRepository.findByCategoryIdOrCategory(category.getId(), oldName);
+        books.forEach(book -> {
+            book.setCategoryId(category.getId());
+            book.setCategory(category.getName());
+        });
+        bookRepository.saveAll(books);
     }
 
     private void validateCategory(Category category) {

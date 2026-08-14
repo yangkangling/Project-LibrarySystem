@@ -11,7 +11,11 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("adminId") != null) {
+        String path = request.getRequestURI();
+        if (session != null && path.startsWith("/self/") && session.getAttribute("readerId") != null) {
+            return true;
+        }
+        if (session != null && !path.startsWith("/self/") && session.getAttribute("adminId") != null) {
             return true;
         }
 

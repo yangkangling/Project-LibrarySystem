@@ -29,5 +29,19 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Frontend ###
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+### Local runtime ###
+work/
+
+### Accidental nested copies ###
+.mvn/.mvn/
+docs/docs/
+sql/sql/
+src/src/
+
 ### VS Code ###
 .vscode/

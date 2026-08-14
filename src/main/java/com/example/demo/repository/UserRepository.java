@@ -13,11 +13,17 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
+    boolean existsByPhoneAndRole(String phone, String role);
+
     Optional<User> findByUsername(String username);
+
+    Optional<User> findByPhoneAndRole(String phone, String role);
 
     Optional<User> findByUsernameAndPasswordAndRole(String username, String password, String role);
 
     List<User> findByRole(String role);
+
+    List<User> findByRoleAndUsernameStartingWithOrderByUsernameDesc(String role, String usernamePrefix);
 
     List<User> findByRoleAndUsernameContainingOrRoleAndRealNameContainingOrRoleAndPhoneContaining(
             String role1,

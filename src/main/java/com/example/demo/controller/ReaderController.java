@@ -46,7 +46,9 @@ public class ReaderController {
     ) {
         if (page == null) {
             if (keyword == null || keyword.trim().isEmpty()) {
-                return userRepository.findByRole("reader");
+                return userRepository.findByRole("reader").stream()
+                        .map(this::toReaderRow)
+                        .toList();
             }
 
             String value = keyword.trim();
@@ -54,10 +56,13 @@ public class ReaderController {
                     "reader", value,
                     "reader", value,
                     "reader", value
-            );
+            ).stream()
+                    .map(this::toReaderRow)
+                    .toList();
         }
 
-        return userRepository.searchReaders(normalize(keyword), normalize(status), PageRequest.of(page, size));
+        return userRepository.searchReaders(normalize(keyword), normalize(status), PageRequest.of(page, size))
+                .map(this::toReaderRow);
     }
 
     @GetMapping("/{id}")
@@ -99,6 +104,10 @@ public class ReaderController {
 
     @PostMapping("/register")
     public Map<String, Object> register(@RequestBody RegisterRequest request) {
+        if (request.password() == null || !request.password().equals(request.confirmPassword())) {
+            throw new RuntimeException("两次输入的密码不一致");
+        }
+
         User user = new User();
         user.setPhone(request.phone());
         user.setPassword(request.password());
@@ -208,6 +217,19 @@ public class ReaderController {
         return "读者" + value.substring(value.length() - 4);
     }
 
-    public record RegisterRequest(String phone, String password) {
+    private Map<String, Object> toReaderRow(User reader) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", reader.getId());
+        item.put("username", reader.getUsername());
+        item.put("realName", reader.getRealName());
+        item.put("phone", reader.getPhone());
+        item.put("remark", reader.getRemark());
+        item.put("status", reader.getStatus());
+        item.put("createdAt", reader.getCreatedAt());
+        item.put("currentBorrowCount", borrowRecordRepository.countByUserIdAndStatus(reader.getId(), "borrowed"));
+        return item;
+    }
+
+    public record RegisterRequest(String phone, String password, String confirmPassword) {
     }
 }

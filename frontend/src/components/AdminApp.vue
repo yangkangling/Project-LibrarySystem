@@ -174,6 +174,16 @@ async function selectPage(page) {
   await loadPage(page)
 }
 
+async function quickAddBook() {
+  await selectPage('books')
+  openBook()
+}
+
+async function quickAddReader() {
+  await selectPage('readers')
+  openReader()
+}
+
 function resetQuery(query, loader) {
   Object.keys(query).forEach((key) => {
     if (key === 'page') query[key] = 0
@@ -618,6 +628,15 @@ onMounted(async () => {
             <div class="stat-card"><span>读者数量</span><strong>{{ dashboard.readers }}</strong></div>
             <div class="stat-card"><span>逾期未还</span><strong>{{ dashboard.overdue }}</strong></div>
           </div>
+          <div class="panel quick-panel">
+            <div class="panel-title"><h3>快捷入口</h3></div>
+            <div class="quick-actions">
+              <el-button type="primary" :icon="Tickets" @click="selectPage('borrow')">办理借书</el-button>
+              <el-button type="success" :icon="Finished" @click="selectPage('returns')">办理还书</el-button>
+              <el-button type="warning" :icon="Reading" @click="quickAddBook">新增图书</el-button>
+              <el-button :icon="User" @click="quickAddReader">新增读者</el-button>
+            </div>
+          </div>
           <div class="panel table-panel">
             <div class="panel-title">
               <h3>近期借阅记录</h3>
@@ -731,6 +750,7 @@ onMounted(async () => {
               <el-table-column prop="username" label="借阅证号" width="130" />
               <el-table-column prop="realName" label="姓名" width="120" />
               <el-table-column prop="phone" label="手机号" width="140" />
+              <el-table-column prop="currentBorrowCount" label="当前借阅数" width="120" />
               <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip />
               <el-table-column label="状态" width="100">
                 <template #default="{ row }">
@@ -888,9 +908,12 @@ onMounted(async () => {
               <el-table-column prop="copyShelfLocation" label="书架位置" width="130" />
               <el-table-column prop="dueDate" label="应还日期" width="120" />
               <el-table-column prop="overdueDays" label="逾期天数" width="100" />
-              <el-table-column label="操作" width="100" fixed="right">
+              <el-table-column label="操作" width="160" fixed="right">
                 <template #default="{ row }">
-                  <el-button size="small" type="success" @click="returnOne(row)">还书</el-button>
+                  <div class="table-actions">
+                    <el-button size="small" @click="openRecordDetail(row)">详情</el-button>
+                    <el-button size="small" type="success" @click="returnOne(row)">还书</el-button>
+                  </div>
                 </template>
               </el-table-column>
             </el-table>

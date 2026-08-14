@@ -8,9 +8,9 @@ const emit = defineEmits(['authenticated'])
 
 const activeTab = ref('admin')
 const loading = ref(false)
-const adminForm = reactive({ username: 'admin', password: '123456' })
-const readerForm = reactive({ username: 'R20260001', password: '123456' })
-const registerForm = reactive({ phone: '', password: '' })
+const adminForm = reactive({ username: '', password: '' })
+const readerForm = reactive({ username: '', password: '' })
+const registerForm = reactive({ phone: '', password: '', confirmPassword: '' })
 const registeredCard = ref('')
 
 async function submitAdmin() {
@@ -36,12 +36,20 @@ async function submitReader() {
 }
 
 async function submitRegister() {
+  if (registerForm.password !== registerForm.confirmPassword) {
+    ElMessage.warning('两次输入的密码不一致')
+    return
+  }
+
   loading.value = true
   try {
     const data = await http.post('/readers/register', registerForm)
     registeredCard.value = data.readerCard
     readerForm.username = data.readerCard
     readerForm.password = registerForm.password
+    registerForm.phone = ''
+    registerForm.password = ''
+    registerForm.confirmPassword = ''
     activeTab.value = 'reader'
     ElMessage.success(`注册成功，借阅证号：${data.readerCard}`)
   } finally {
@@ -116,6 +124,9 @@ async function submitRegister() {
               </el-form-item>
               <el-form-item label="密码">
                 <el-input v-model="registerForm.password" type="password" show-password placeholder="至少 6 位" />
+              </el-form-item>
+              <el-form-item label="确认密码">
+                <el-input v-model="registerForm.confirmPassword" type="password" show-password placeholder="请再次输入密码" />
               </el-form-item>
               <el-button type="warning" :loading="loading" style="width: 100%" @click="submitRegister">
                 注册读者账号

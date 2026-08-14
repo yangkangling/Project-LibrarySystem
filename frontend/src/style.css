@@ -241,6 +241,16 @@ select {
   line-height: 1;
 }
 
+.quick-panel {
+  padding-bottom: 14px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .table-panel {
   overflow: hidden;
 }

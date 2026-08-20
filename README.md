@@ -4,11 +4,13 @@
 
 一个基于 Spring Boot + Vue 3 的图书馆/资产流转管理系统，覆盖管理员端和读者自助端。系统围绕图书主数据、分类、书架、馆藏单册、读者账号、批量借还、续借审批、还书预警、逾期罚款、账号冻结和扫码/RFID 模拟查询进行设计，适合课程设计、毕业设计、小型图书室、实验室资产流转和库存监测场景继续扩展。
 
-**English Summary**: This is a full-stack library circulation system built with Spring Boot, Spring Data JPA, MySQL, Vue 3 and Element Plus. It supports admin workflows, reader self-service, copy-level inventory, overdue fines, account freezing, atomic stock deduction, session-based permission isolation, Docker Compose deployment and CI verification.
+**English Summary**: This is a full-stack library circulation system built with Spring Boot, Spring Data JPA, MySQL, Vue 3 and Element Plus. It implements admin workflows, reader self-service, copy-level inventory, overdue fines, account freezing, atomic stock deduction, session-based permission isolation, Docker Compose configuration and a GitHub Actions CI workflow.
 
 ## 演示
 
-### 运行 GIF
+### 界面演示 GIF
+
+该 GIF 由真实页面截图生成，用于快速浏览核心界面；完整交互仍以本地运行系统为准。
 
 ![Demo Flow](docs/assets/screenshots/demo-flow.gif)
 
@@ -30,7 +32,7 @@
 | 安全 | BCrypt 密码哈希, Session 权限隔离, DTO 输入边界 |
 | 前端 | Vue 3, Vite, Element Plus, Axios |
 | 数据库 | MySQL / MariaDB |
-| 工程化 | Maven Wrapper, npm, Docker Compose, GitHub Actions |
+| 工程化 | Maven Wrapper, npm, Docker Compose 配置, GitHub Actions 工作流 |
 | 部署形态 | Spring Boot Jar 内置前端静态资源，默认端口 `8080` |
 
 正式坐标：
@@ -162,7 +164,7 @@ erDiagram
 | 账号冻结 | 有逾期未还或待缴罚款时冻结；全部处理完成后自动解冻 |
 | 权限隔离 | 管理端接口要求 `adminId` Session，读者端 `/self/**` 只使用 Session 中的 `readerId` |
 
-更多设计取舍见 [docs/architecture-decisions.md](docs/architecture-decisions.md)。
+更多设计取舍见 [docs/architecture-decisions.md](docs/architecture-decisions.md)。实验记录、失败尝试和代码讲解材料见 `docs/` 目录。
 
 ## 项目结构
 
@@ -182,7 +184,7 @@ library-system
 ├── src/main/resources/static/               # 前端构建后的静态资源
 ├── src/test/java/                           # 单元测试和集成测试
 ├── sql/init.sql                             # 数据库初始化脚本
-├── docs/                                    # 需求、设计、架构决策、图示素材
+├── docs/                                    # 需求、设计、实验记录、架构决策、图示素材
 ├── pom.xml
 └── README.md
 ```
@@ -216,7 +218,9 @@ Copy-Item .env.example .env
 
 ## 启动方式
 
-### Docker Compose 一键启动
+### Docker Compose 启动配置
+
+仓库已提供 `Dockerfile` 和 `docker-compose.yml`。当前环境已完成本地 jar 启动验证；Docker Compose 配置会由 GitHub 仓库和后续部署环境继续验证。
 
 ```bash
 docker compose up --build
@@ -336,7 +340,7 @@ npm run build:spring
 - 库存一致性：主图书、书架库存、单册状态、借阅记录同步校验。
 - 读者端权限隔离：读者不能归还或影响他人的借阅记录。
 
-GitHub Actions 会在 push 和 pull request 时自动执行：
+仓库包含 GitHub Actions 工作流，会在 push 和 pull request 时自动执行：
 
 - `npm ci`
 - `npm run build:spring`
@@ -349,6 +353,21 @@ GitHub Actions 会在 push 和 pull request 时自动执行：
 - 多实例部署时需要 Redis Session 或 token 化认证。
 - 数据量较大时保持 `LIBRARY_REPAIR_LEGACY_DATA_ON_STARTUP=false`。
 - 根据数据库承载能力调整 `DB_POOL_MAX_SIZE` 和 MySQL 最大连接数。
+
+## 当前验证状态
+
+本地已经完成：
+
+- `.\mvnw.cmd test`：13 个测试通过。
+- `npm run build:spring`：前端生产构建通过。
+- `.\mvnw.cmd -DskipTests package`：生成 `target\library-system-0.0.1-SNAPSHOT.jar`。
+- `java -jar target\library-system-0.0.1-SNAPSHOT.jar`：8080 启动成功，首页返回 `200`。
+- 登录后访问 `/scan/resolve?code=978000000001`：返回 `200`。
+
+尚未在当前本地环境实际执行：
+
+- `docker compose up --build` 的完整容器启动。
+- GitHub Actions 在远端 runner 上的最终结果，以仓库 Actions 页面为准。
 
 ## 后续扩展
 

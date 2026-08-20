@@ -150,12 +150,12 @@ INSERT INTO categories (name, description) VALUES
 ('教育', '教材、教辅与教育类图书');
 
 -- 演示用户数据。
-INSERT INTO users (id, username, password, real_name, role, phone, status, account_balance, remark) VALUES
-(1, 'admin', '123456', '管理员', 'admin', '13800000000', 'enabled', 0.00, '默认管理员账号'),
-(2, 'R20260001', '123456', '张三', 'reader', '13900000001', 'enabled', 20.00, '普通读者'),
-(3, 'R20260002', '123456', '李四', 'reader', '13900000002', 'disabled', 20.00, '停用读者演示'),
-(4, 'R20260003', '123456', '王五', 'reader', '13900000003', 'enabled', 20.00, '逾期演示读者'),
-(5, 'R20260004', '123456', '赵六', 'reader', '13900000004', 'enabled', 20.00, '借阅上限演示读者');
+INSERT INTO users (id, username, password, real_name, role, phone, status, remark) VALUES
+(1, 'admin', '$2b$10$9VHIiCuOlNrw0yXjKFfJPOddVLOR/wsiPUUb2oBgzzFY9KEpqBvwa', '管理员', 'admin', '13800000000', 'enabled', '默认管理员账号'),
+(2, 'R20260001', '$2b$10$9VHIiCuOlNrw0yXjKFfJPOddVLOR/wsiPUUb2oBgzzFY9KEpqBvwa', '张三', 'reader', '13900000001', 'enabled', '普通读者'),
+(3, 'R20260002', '$2b$10$9VHIiCuOlNrw0yXjKFfJPOddVLOR/wsiPUUb2oBgzzFY9KEpqBvwa', '李四', 'reader', '13900000002', 'disabled', '停用读者演示'),
+(4, 'R20260003', '$2b$10$9VHIiCuOlNrw0yXjKFfJPOddVLOR/wsiPUUb2oBgzzFY9KEpqBvwa', '王五', 'reader', '13900000003', 'enabled', '逾期演示读者'),
+(5, 'R20260004', '$2b$10$9VHIiCuOlNrw0yXjKFfJPOddVLOR/wsiPUUb2oBgzzFY9KEpqBvwa', '赵六', 'reader', '13900000004', 'enabled', '借阅上限演示读者');
 
 INSERT INTO books (id, title, author, isbn, publisher, publish_date, category_id, category, shelf_location, status, total_count, available_count) VALUES
 (1, 'Java程序设计', '张老师', '978000000001', '清华大学出版社', '2024-03-01', 1, '计算机', 'A-03-02', 'enabled', 5, 4),

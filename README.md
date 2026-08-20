@@ -166,6 +166,14 @@ erDiagram
 
 更多设计取舍见 [docs/architecture-decisions.md](docs/architecture-decisions.md)。实验记录、失败尝试和代码讲解材料见 `docs/` 目录。
 
+## 项目过程文档
+
+- [实验记录](docs/experiment-log.md)：记录实际执行过的测试、构建、打包和冒烟验证。
+- [失败尝试](docs/failed-attempts.md)：记录迁移、测试和打包中真实遇到的问题与修复。
+- [Design Notes](docs/design-notes.md)：说明核心业务流、模块边界和不要轻易改的地方。
+- [代码讲解提纲](docs/code-walkthrough.md)：用于答辩或面试时按顺序讲清楚代码。
+- [Architecture Decisions](docs/architecture-decisions.md)：说明 Spring Boot、JPA、事务、库存原子扣减和 Session 隔离的取舍。
+
 ## 项目结构
 
 ```text

@@ -5,6 +5,7 @@ import 'element-plus/dist/index.css'
 import App from './App.vue'
 import './style.css'
 
+// 挂载 Vue 应用和 Element Plus。
 createApp(App)
   .use(ElementPlus, { locale: zhCn })
   .mount('#app')

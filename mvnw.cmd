@@ -106,6 +106,16 @@ if (Test-Path -Path "$MAVEN_HOME" -PathType Container) {
   exit $?
 }
 
+$existingMavenCmd = Get-ChildItem -Path "$MAVEN_WRAPPER_DISTS" -Filter "$MVN_CMD" -Recurse -ErrorAction SilentlyContinue |
+  Where-Object { $_.FullName -like "*$distributionUrlNameMain*" } |
+  Sort-Object FullName -Descending |
+  Select-Object -First 1
+if ($existingMavenCmd) {
+  Write-Verbose "found existing Maven command at $($existingMavenCmd.FullName)"
+  Write-Output "MVN_CMD=$($existingMavenCmd.FullName)"
+  exit $?
+}
+
 if (! $distributionUrlNameMain -or ($distributionUrlName -eq $distributionUrlNameMain)) {
   Write-Error "distributionUrl is not valid, must end with *-bin.zip, but found $distributionUrl"
 }

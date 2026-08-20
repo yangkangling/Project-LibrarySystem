@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
+// 本地开发时把接口代理到 Spring Boot。
 const backend = 'http://localhost:8080'
 
 export default defineConfig({
@@ -24,6 +25,7 @@ export default defineConfig({
       '/storage-locations': backend
     }
   },
+  // 打包结果直接输出到 Spring Boot 静态资源目录。
   build: {
     outDir: '../src/main/resources/static',
     emptyOutDir: true,

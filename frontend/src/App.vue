@@ -1,14 +1,18 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { http } from '@/api/http'
+import { installTableAutoScroll } from '@/utils/tableAutoScroll'
 import LoginView from '@/components/LoginView.vue'
 import AdminApp from '@/components/AdminApp.vue'
 import ReaderApp from '@/components/ReaderApp.vue'
 
+// 顶层只负责判断登录身份并切换端口。
 const booting = ref(true)
 const mode = ref('login')
+let cleanupTableAutoScroll = null
 
+// 刷新页面时恢复当前会话。
 async function refreshAuth() {
   try {
     const data = await http.get('/auth/me')
@@ -26,6 +30,7 @@ async function refreshAuth() {
   }
 }
 
+// 管理端和读者端共用退出逻辑。
 async function logout() {
   try {
     await http.post('/auth/logout')
@@ -39,7 +44,14 @@ function handleAuthenticated(role) {
   mode.value = role === 'reader' ? 'reader' : 'admin'
 }
 
-onMounted(refreshAuth)
+onMounted(() => {
+  cleanupTableAutoScroll = installTableAutoScroll()
+  refreshAuth()
+})
+
+onBeforeUnmount(() => {
+  cleanupTableAutoScroll?.()
+})
 </script>
 
 <template>

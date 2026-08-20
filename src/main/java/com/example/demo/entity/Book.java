@@ -1,53 +1,79 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+// 图书主表实体。
 @Entity
-@Table(name = "books")
+@Table(name = "books", indexes = {
+        @Index(name = "idx_books_category_id", columnList = "category_id"),
+        @Index(name = "idx_books_status_id", columnList = "status,id"),
+        @Index(name = "idx_books_shelf_location", columnList = "shelf_location")
+})
 public class Book {
+    // 图书主键 id。
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 书名。
     private String title;
+    // 作者。
     private String author;
+    // ISBN 编号。
+    @Column(nullable = false, unique = true)
     private String isbn;
+    // 出版社，目前业务里暂时置空保留。
     private String publisher;
+    // 分类名称，冗余保存用于页面展示和兼容旧数据。
     private String category;
+    // 图书状态：enabled 表示启用，disabled 表示停用。
     private String status;
 
+    // 分类 id，关联 categories 表。
     @Column(name = "category_id")
     private Long categoryId;
 
+    // 分类实体信息，只读关联，用于需要分类详情时读取。
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", insertable = false, updatable = false)
     private Category categoryInfo;
 
+    // 出版日期，目前业务里暂时置空保留。
     @Column(name = "publish_date")
     private LocalDate publishDate;
 
+    // 主书架位置。
     @Column(name = "shelf_location")
     private String shelfLocation;
 
+    // 馆藏总册数。
     @Column(name = "total_count")
     private Integer totalCount;
 
+    // 当前可借册数。
     @Column(name = "available_count")
     private Integer availableCount;
 
+    // 创建时间。
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    // 当前仍在读者手里的册数，仅用于接口展示，不落库。
+    @Transient
+    private Long activeBorrowCount;
 
     public Long getId() {
         return id;
@@ -159,5 +185,13 @@ public class Book {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Long getActiveBorrowCount() {
+        return activeBorrowCount;
+    }
+
+    public void setActiveBorrowCount(Long activeBorrowCount) {
+        this.activeBorrowCount = activeBorrowCount;
     }
 }

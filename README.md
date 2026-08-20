@@ -1,274 +1,161 @@
 # 图书馆借阅管理系统
 
-图书馆借阅管理系统是一个面向学校、班级图书角、小型图书室等场景的借阅管理系统。系统将管理员日常管理和普通读者自助借还分开，围绕图书、读者、分类、书架存储、库存、借阅、归还、逾期查询等核心业务进行设计。
+这是一个基于 Spring Boot + Vue 3 的图书馆借阅管理系统，覆盖管理员端和读者自助端两套工作流。系统围绕图书、分类、书架、馆藏、副本、读者、借阅、归还、续借、预警、逾期罚款和账号冻结进行设计，适合课程设计、毕业设计、实验室/班级图书角、小型图书室等场景继续扩展。
 
-当前版本重点完成图书馆借阅管理的核心闭环：登录权限、图书分类、图书管理、读者管理、管理员借还、读者自助借还、借阅记录、逾期查询、库存校验和书架存储管理。系统适合课程设计验收展示，也可作为后续扩展条码扫描、预约、续借、罚金、通知等功能的基础。
+当前版本已经从简单 CRUD 增强为更完整、可复用的借阅系统：支持分页、搜索、批量借还、库存一致性、书架位置管理、单册编号、逾期保留、还书预警、罚款缴纳确认、违规读者冻结，以及读者端自助借阅/归还/续借申请。
 
 ## 技术栈
 
-- 后端：Spring Boot 4.1、Spring Web MVC、Spring Data JPA
-- 前端：Vue3、Vite、Element Plus、Axios
-- 数据库：MySQL 或 MariaDB
-- 开发环境：JDK 17、IntelliJ IDEA、DBeaver
-- 运行形态：Spring Boot Web 应用，浏览器访问，连接 `library_system` 数据库
+| 模块 | 技术 |
+| --- | --- |
+| 后端 | Java 11, Spring Boot 2.7.18, Spring Web, Spring Data JPA |
+| 前端 | Vue 3, Vite, Element Plus, Axios |
+| 数据库 | MySQL / MariaDB |
+| 构建 | Maven Wrapper, npm |
+| 部署形态 | Spring Boot Jar 内置前端静态资源，默认端口 `8080` |
 
-## 系统目标
+## 核心功能
 
-- 实现图书馆借阅业务的信息化管理，减少手工登记和人工统计工作。
-- 管理员可统一维护图书、分类、读者和借阅记录。
-- 普通读者可自助注册、登录、查询图书、自助借书、自助还书和查看本人记录。
-- 系统自动维护库存数量、书架存储位置、借阅状态和逾期状态。
-- 通过权限隔离，避免普通读者进入管理员管理页面。
+### 管理员端
 
-## 用户角色
-
-| 角色 | 主要职责 | 可访问功能 |
-| --- | --- | --- |
-| 管理员 | 负责系统管理和人工办理业务 | 工作台、图书分类、图书管理、读者管理、借书办理、还书办理、借阅记录、逾期查询、书架查询 |
-| 普通读者 | 使用系统进行自助借还和查询本人记录 | 读者注册、读者登录、我的首页、自助借书、自助还书、我的记录 |
-
-## 系统边界
-
-当前系统不依赖实体扫描仪。系统通过 ISBN、借阅证号、库存数量和书架存储位置来模拟真实图书馆中的找书、借出、归还和定位流程。当前版本未接入条码扫描枪、短信验证、在线支付、第三方统一认证等外部系统。
-
-## 功能说明
-
-### 登录与权限
-
-- 首页支持管理员和普通读者两类身份入口。
-- 管理员输入账号和密码后进入管理端。
-- 读者使用系统分配的借阅证号和密码登录读者自助端。
-- 没有账号的读者可输入手机号和密码注册，系统自动生成借阅证号。
-- 未登录用户访问管理端或读者端接口时，系统返回中文提示。
-- 管理端与读者端权限隔离，普通读者不能访问管理接口。
-- 管理员和读者均可退出当前登录状态。
-
-### 管理员工作台
-
-- 展示图书种类、馆藏总册、当前可借、当前借出、读者数量、逾期未还等统计数据。
-- 展示最近借阅记录，包括读者、图书、书架位置、借阅日期、应还日期和状态。
-
-### 图书分类管理
-
-- 管理员可按关键字查询图书分类，并分页展示。
-- 管理员可新增分类名称和分类说明，分类名称不能为空且不能重复。
-- 管理员可修改分类名称和说明，修改分类名称后同步更新关联图书。
-- 分类下已有图书时不允许删除，需先调整图书分类。
-- 新增或编辑图书时，分类从已有分类中选择，避免手动输入导致数据不一致。
-
-### 图书管理
-
-- 支持按 ISBN、书名、作者查询图书，并可按分类和状态筛选。
-- 图书列表按页展示。
-- 管理员新增图书时填写 ISBN、书名、作者、分类、书架位置、馆藏数量和状态。
-- 管理员可修改图书基本信息、分类、书架位置、状态和馆藏数量。
-- 停用图书后不可办理新的借阅，启用后可重新参与借阅。
-- 无借阅历史的图书允许删除；已有借阅历史的图书不允许删除，只能停用。
-- 每本图书必须维护书架位置，便于管理员和读者定位图书。
-- 图书详情展示馆藏总数、可借数量、已借数量、书架位置和单册状态。
-
-### 读者管理
-
-- 管理员可按借阅证号、姓名、手机号查询读者，并按状态筛选。
-- 读者列表按页展示。
-- 管理员可通过手机号、密码、姓名等信息办理读者账号，借阅证号由系统自动生成。
-- 管理员可查看读者基本信息、当前借阅记录和历史借阅记录。
-- 管理员可修改读者手机号、姓名、备注、状态和密码。
-- 停用读者后，该读者不能登录自助端，也不能办理新借阅。
-- 借阅证号格式为 `R + 当前年份 + 四位顺序号`，例如 `R20260001`。
-
-### 管理员借书办理
-
-- 管理员可按借阅证号或姓名搜索读者。
-- 管理员可按 ISBN、书名、作者搜索可借图书。
-- 管理员可一次为同一读者借出多本不同图书。
-- 系统校验读者状态、借阅上限、逾期情况、重复借阅、图书状态和库存。
-- 校验通过后生成借阅记录和批次号，记录当时书架位置并扣减可借数量。
-- 提交操作时按钮进入加载状态，避免重复提交。
-
-### 管理员还书办理
-
-- 管理员可按关键字查询当前未归还的借阅记录。
-- 管理员可对某条借阅记录办理归还。
-- 管理员可一次选择多条借阅记录办理归还，支持部分还书。
-- 归还成功后，系统记录归还日期，借阅状态变为已归还。
-- 归还成功后，图书可借数量增加，借阅记录保留原书架位置。
-- 已经归还的记录不能再次归还。
-
-### 借阅记录与逾期查询
-
-- 管理员可按读者、图书、编号等关键字查询借阅记录。
-- 支持按借阅中、已归还、逾期等状态筛选记录。
-- 借阅记录支持分页展示。
-- 借阅记录详情包含读者快照、图书快照、书架位置、借阅日期、应还日期、归还日期、状态等。
-- 借阅时保存读者姓名、借阅证号、手机号、图书 ISBN、书名、作者和书架位置，避免后续修改影响历史记录展示。
-- 系统根据当前日期和应还日期自动判断逾期未还记录。
-- 逾期列表展示逾期天数，方便管理员优先处理。
+- 工作台：统计图书、馆藏、可借、借阅中、读者数量、逾期未还、分类分布和借阅趋势。
+- 分类管理：分类查询、新增、编辑、删除、合并、查看分类下图书。
+- 图书管理：ISBN/书名/作者搜索，分类和状态筛选，新增、编辑、停用、启用、删除、详情查看。
+- 馆藏与副本：维护馆藏数量、可借数量、书架位置、单册编号和副本状态。
+- 书架管理：按 `区域-排号-格号` 管理位置，后两段上限 50，避免无限扩张。
+- 读者管理：读者新增、编辑、停用/启用、重置密码、查看当前借阅和历史记录。
+- 借书办理：选择读者和多本图书批量借出，自动校验库存、读者状态、借阅上限、重复借阅和逾期限制。
+- 还书办理：当前未还记录查询，支持单条归还和批量归还。
+- 续借审核：读者提交续借申请后，管理员可审核并更新应还日期。
+- 还书预警：按未来 7/30/90 天或全年范围查询即将到期和已逾期记录，支持关键词搜索。
+- 逾期处理：保留所有曾经逾期的记录，已归还后仍可在逾期历史中处理罚款和冻结。
+- 罚款与冻结：逾期罚款待缴纳时默认冻结读者账号，管理员确认缴纳或免罚后系统自动判断是否解冻。
 
 ### 读者自助端
 
-- 读者登录后可查看本人借阅证号、当前借阅数量、最多可借数量和未还图书。
-- 读者可按 ISBN、书名、作者搜索启用状态的图书，并可按分类筛选。
-- 读者选择图书加入清单后提交借阅，系统自动生成借阅日期和应还日期。
-- 读者只能归还本人当前借阅中的记录，不能归还他人记录。
-- 读者可查看本人全部借阅历史，包括书架位置、借阅日期、应还日期、归还日期和状态。
-- 读者端复用后台借阅校验，仍受库存、上限、逾期、重复借阅等规则限制。
+- 读者注册：手机号注册，系统自动生成借阅证号。
+- 读者登录：冻结账号不能登录自助端。
+- 我的借阅：首页展示借阅证号、姓名、账号状态、当前未还、可借上限和还书预警。
+- 图书查询：按 ISBN、书名、作者和分类查询可借图书。
+- 自助借书：可选择默认 30 天或自定义借阅天数，最长 90 天。
+- 还书预警：支持范围筛选、关键词搜索、查询、刷新和重置。
+- 续借办理：未逾期、未归还且无待审批申请的记录可申请续借。
+- 自助还书：读者只能归还自己的未还记录。
+- 我的记录：查看本人完整借阅历史。
 
-## 业务流程
+## 关键业务规则
 
-### 管理员办理借书
-
-1. 管理员登录管理端。
-2. 进入借书办理页面。
-3. 搜索并选择读者。
-4. 搜索并选择一本或多本不同图书。
-5. 点击确认借出所选图书。
-6. 系统校验读者状态、借阅上限、逾期情况、重复借阅、图书状态和库存。
-7. 校验通过后生成借阅记录和批次号，记录当时书架位置并扣减可借数量。
-8. 页面提示借书成功并刷新读者与图书数据。
-
-### 管理员办理还书
-
-1. 管理员登录管理端。
-2. 进入还书办理页面。
-3. 搜索当前借阅中的记录。
-4. 选择一条或多条需要归还的记录。
-5. 提交归还。
-6. 系统校验记录是否存在、是否已归还。
-7. 归还成功后记录归还日期，状态变为已归还，图书可借数量增加。
-
-### 读者自助借书
-
-1. 读者进入首页选择普通读者身份。
-2. 已有账号则输入借阅证号和密码登录；没有账号则先注册。
-3. 进入自助借书页面，查询可借图书。
-4. 将需要借阅的图书加入清单。
-5. 提交借阅。
-6. 系统自动校验并生成借阅记录。
-
-### 读者自助还书
-
-1. 读者登录自助端。
-2. 进入自助还书页面。
-3. 查看本人当前未归还图书。
-4. 选择需要归还的记录并提交。
-5. 系统只允许归还本人记录，归还成功后更新状态和库存。
-
-## 业务规则
-
-| 编号 | 规则名称 | 规则说明 |
-| --- | --- | --- |
-| BR-01 | 借阅证号生成规则 | 读者借阅证号由系统自动生成，格式为 R + 年份 + 四位顺序号，例如 R20260001。 |
-| BR-02 | 手机号唯一规则 | 同一手机号只能注册或办理一个读者账号。 |
-| BR-03 | 图书唯一规则 | ISBN 不能重复。 |
-| BR-04 | 分类引用规则 | 图书只能选择已有分类，分类被图书引用时不能删除。 |
-| BR-05 | 馆藏数量规则 | 图书馆藏总数必须大于 0，且不能小于当前已借出数量。 |
-| BR-06 | 可借数量规则 | 可借数量不能小于 0，不能大于馆藏总数。 |
-| BR-07 | 书架存储规则 | 图书通过书架位置和库存数量进行馆藏管理，按存储位置记录馆藏。 |
-| BR-08 | 借阅上限规则 | 同一读者最多同时借阅 3 本图书。 |
-| BR-09 | 重复借阅规则 | 同一读者不能在未归还的情况下再次借阅同一种图书。 |
-| BR-10 | 逾期限制规则 | 读者存在逾期未还图书时，不能办理新的借阅。 |
-| BR-11 | 借阅日期规则 | 借阅日期由系统自动记录为当前日期，不允许前台手动填写。 |
-| BR-12 | 应还日期规则 | 应还日期由系统自动生成，默认借阅当天起 30 天。 |
-| BR-13 | 删除限制规则 | 已有借阅历史的图书不能删除，只能停用。 |
-| BR-14 | 归还限制规则 | 已归还记录不能重复归还；读者端只能归还本人借阅记录。 |
-| BR-15 | 库存并发规则 | 借出时通过条件更新扣减库存，避免库存不足时仍被借出。 |
-
-## 数据需求
-
-| 数据实体 | 主要字段 | 说明 |
-| --- | --- | --- |
-| 用户/读者表 `users` | `id`、`username`、`password`、`realName`、`role`、`phone`、`status`、`remark`、`createdAt` | 保存管理员账号和普通读者账号。普通读者 `username` 为借阅证号。 |
-| 图书表 `books` | `id`、`title`、`author`、`isbn`、`categoryId`、`category`、`status`、`shelfLocation`、`totalCount`、`availableCount`、`createdAt` | 保存图书书目信息、分类、书架位置和库存数量。 |
-| 分类表 `categories` | `id`、`name`、`description`、`createdAt` | 保存图书分类信息。 |
-| 书架存储表 `storage_locations` | `id`、`bookId`、`shelfLocation`、`totalCount`、`availableCount`、`remark`、`createdAt`、`updatedAt` | 保存图书在不同书架位置的存放数量和可借数量。 |
-| 借阅记录表 `borrow_records` | `id`、`userId`、`bookId`、`storageLocationId`、`readerCard`、`readerName`、`readerPhone`、`bookIsbn`、`bookTitle`、`bookAuthor`、`shelfLocationSnapshot`、`batchNo`、`borrowDate`、`dueDate`、`returnDate`、`status`、`createdAt` | 保存借阅和归还全过程记录，同时保存读者、图书和书架位置快照。 |
-
-数据关系：
-
-- 一本图书属于一个分类，分类与图书之间是一对多关系。
-- 一种图书可以存放在一个或多个书架位置，图书与书架存储记录之间是一对多关系。
-- 一个读者可以拥有多条借阅记录，读者与借阅记录之间是一对多关系。
-- 一本图书可以产生多条借阅记录，图书与借阅记录之间是一对多关系。
-- 一条借阅记录保存借阅时的书架位置，用于定位图书来源位置和还书归架位置。
-
-## 非功能需求
-
-- 页面文字清楚直接，管理员和读者能快速理解操作含义。
-- 库存扣减、归还恢复和借阅记录必须保持一致。
-- 管理员端与读者端需要登录后访问，普通读者不能访问管理接口。
-- 图书分类、书架位置、库存数量、借阅记录快照应保持一致。
-- 后端按 Controller、Service、Repository、Entity 分层，便于后续扩展。
-- 输入不合法、库存不足、超过借阅上限等情况应返回中文错误提示。
-- 关键提交按钮在请求过程中禁用，减少重复点击造成的重复业务。
-- 借阅记录保留图书和书架位置快照，便于追踪图书从哪个位置借出。
+| 规则 | 说明 |
+| --- | --- |
+| 读者证号 | 自动生成，格式为 `R + 年份 + 四位序号`，例如 `R20260001` |
+| 借阅上限 | 默认每位读者最多同时借阅 3 本，可通过 `library.max-active-borrow-count` 配置 |
+| 借阅期限 | 默认 30 天，自定义最长 90 天 |
+| 续借 | 单次续借不超过 3 个月，逾期记录不可续借 |
+| 馆藏上限 | 新增图书初始馆藏和书架库存每次新增上限为 50 |
+| 书架位置 | 采用 `A-01-01` 这类格式，排号和格号均限制在 1-50 |
+| 图书停用 | 停用后禁止新借；已经借出的记录保留，仍可正常归还 |
+| 逾期记录 | 归还后仍保留在逾期历史中，便于处理罚款和追溯 |
+| 罚款金额 | 默认每天 `0.50` 元，按逾期天数计算 |
+| 罚款缴纳 | 管理员端只做“确认缴纳/免罚”，不做虚假的余额扣款 |
+| 账号冻结 | 逾期罚款待缴纳时冻结读者；缴纳或免罚后若无其他逾期/待缴罚款则自动解冻 |
 
 ## 项目结构
 
 ```text
 demo
-├── frontend                         Vue3 + Vite + Element Plus 前端工程
-├── src/main/java/com/example/demo    Spring Boot 后端代码
-├── src/main/resources/static         Vue 构建后的静态资源
+├── frontend/                         # Vue 3 + Vite 前端工程
+├── src/main/java/com/example/demo/    # Spring Boot 后端源码
+│   ├── config/                        # 登录拦截、业务配置
+│   ├── controller/                    # REST 接口
+│   ├── entity/                        # JPA 实体
+│   ├── repository/                    # 数据访问层
+│   └── service/                       # 业务服务
+├── src/main/resources/static/         # 前端构建后的静态资源
 ├── src/main/resources/application.properties
-├── sql/init.sql                      数据库初始化脚本
-├── docs/design.md                    设计说明与图示说明
-└── pom.xml
+├── src/test/java/                     # 后端测试
+├── sql/init.sql                       # 数据库初始化脚本
+├── docs/                              # 需求和设计文档
+├── pom.xml
+└── README.md
 ```
 
-## 数据库初始化
+## 数据库配置
 
-在 DBeaver 中执行：
-
-```text
-sql/init.sql
-```
-
-脚本会重新创建 `library_system` 数据库，并写入演示数据。演示数据覆盖正常借阅、正常归还、无库存图书、停用读者、停用图书、逾期未还记录、单个读者 3 本未还的借阅上限场景。
-
-数据库连接配置位于：
-
-```text
-src/main/resources/application.properties
-```
-
-默认配置：
+默认连接配置在 `src/main/resources/application.properties`：
 
 ```properties
+server.port=8080
+
 spring.datasource.url=jdbc:mysql://localhost:3306/library_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
 spring.datasource.username=root
 spring.datasource.password=
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+
+library.max-active-borrow-count=3
+library.max-page-size=100
+library.repair-legacy-data-on-startup=false
+
+spring.datasource.hikari.maximum-pool-size=20
+spring.datasource.hikari.minimum-idle=5
 ```
 
-如果本机数据库有密码，修改：
+如果本机 MySQL 有密码，请修改：
 
 ```properties
-spring.datasource.password=你的密码
+spring.datasource.password=你的数据库密码
 ```
+
+### 初始化数据库
+
+方式一：使用脚本重建数据库并导入演示数据。
+
+```bash
+mysql -u root -p < sql/init.sql
+```
+
+方式二：手动创建数据库，让 Spring Boot 自动建表和补齐演示数据。
+
+```sql
+CREATE DATABASE library_system DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+`DataInitializer` 会在启动时创建默认管理员、演示读者、分类、图书、书架、馆藏和借阅数据。已有库需要大规模修复旧数据时，可临时开启：
+
+```properties
+library.repair-legacy-data-on-startup=true
+```
+
+修复完成后建议改回 `false`，避免大型数据量下每次启动扫描全库。
 
 ## 启动方式
 
-### 方式一：直接运行 Spring Boot
+### 一体化启动
 
-在 IntelliJ IDEA 中打开：
+前端已经构建到 `src/main/resources/static` 后，可直接运行 Spring Boot：
 
-```text
-src/main/java/com/example/demo/DemoApplication.java
+```bash
+.\mvnw.cmd test
+.\mvnw.cmd -DskipTests package
+java -jar target\demo-0.0.1-SNAPSHOT.jar
 ```
 
-使用 JDK 17 启动，访问：
+访问：
 
 ```text
 http://localhost:8080/
 ```
 
-该方式使用 `src/main/resources/static` 中已经构建好的 Vue 页面。
+### 前后端分离开发
 
-### 方式二：前后端分离开发
+先启动后端：
 
-先启动 Spring Boot 后端，默认端口为 `8080`。
+```bash
+.\mvnw.cmd spring-boot:run
+```
 
-再进入前端目录：
+再启动前端开发服务器：
 
 ```bash
 cd frontend
@@ -282,106 +169,129 @@ npm run dev
 http://localhost:5173/
 ```
 
-Vite 已配置代理，请求 `/auth`、`/books`、`/borrow`、`/self` 等接口时会自动转发到 `http://localhost:8080`。
+Vite 已配置代理，`/auth`、`/books`、`/borrow`、`/self` 等请求会转发到 `http://localhost:8080`。
 
-构建前端到 Spring Boot 静态目录：
+### 构建前端到 Spring Boot
 
 ```bash
 cd frontend
+npm install
 npm run build:spring
+```
+
+构建产物会写入：
+
+```text
+src/main/resources/static
 ```
 
 ## 默认账号
 
-默认管理员账号：
+管理员：
 
 ```text
 账号：admin
 密码：123456
 ```
 
-默认读者账号：
+演示读者：
 
 ```text
 借阅证号：R20260001
 密码：123456
 ```
 
-## 接口清单
+系统还会创建若干演示读者，用于展示停用、逾期和借阅上限场景。
 
-```text
-POST   /auth/login
-POST   /auth/reader-login
-POST   /auth/logout
-GET    /auth/me
+## 常用接口
 
-GET    /dashboard
+| 方法 | 地址 | 说明 |
+| --- | --- | --- |
+| `POST` | `/auth/login` | 管理员登录 |
+| `POST` | `/auth/reader-login` | 读者登录 |
+| `POST` | `/auth/logout` | 退出登录 |
+| `GET` | `/auth/me` | 当前登录状态 |
+| `GET` | `/dashboard` | 管理员工作台 |
+| `GET/POST/PUT/DELETE` | `/categories` | 分类管理 |
+| `GET/POST/PUT/DELETE` | `/books` | 图书管理 |
+| `GET/POST/PUT` | `/readers` | 读者管理 |
+| `GET/POST/DELETE` | `/storage-locations` | 书架/馆藏位置管理 |
+| `GET` | `/borrow/reader-options` | 借书读者候选 |
+| `GET` | `/borrow/book-options` | 借书图书候选 |
+| `POST` | `/borrow/batch` | 管理员批量借书 |
+| `GET` | `/borrow/return-options` | 可还记录 |
+| `POST` | `/borrow/return` | 批量还书 |
+| `GET` | `/borrow/warnings` | 管理员还书预警 |
+| `GET` | `/borrow/overdue` | 逾期历史和罚款处理 |
+| `POST` | `/borrow/records/{id}/fine/paid` | 确认罚款已缴纳 |
+| `POST` | `/borrow/records/{id}/fine/waived` | 免除罚款 |
+| `POST` | `/borrow/records/{id}/freeze-reader` | 冻结违规读者 |
+| `GET` | `/self/me` | 读者个人信息 |
+| `GET` | `/self/books` | 读者端图书查询 |
+| `GET` | `/self/warnings` | 读者端还书预警 |
+| `GET` | `/self/records` | 读者本人记录 |
+| `POST` | `/self/borrow` | 读者自助借书 |
+| `POST` | `/self/return` | 读者自助还书 |
+| `POST` | `/self/records/{id}/extension-request` | 读者提交续借申请 |
 
-GET    /categories
-GET    /categories/{id}
-POST   /categories
-PUT    /categories/{id}
-DELETE /categories/{id}
+## 测试
 
-GET    /storage-locations
-GET    /storage-locations/{id}
+后端测试覆盖图书停用、库存/书架规则、逾期罚款缴纳和冻结解冻逻辑。
 
-GET    /books
-GET    /books/{id}
-POST   /books
-PUT    /books/{id}
-PUT    /books/{id}/disable
-PUT    /books/{id}/enable
-DELETE /books/{id}
-
-GET    /readers
-GET    /readers/{id}
-POST   /readers
-POST   /readers/register
-PUT    /readers/{id}
-PUT    /readers/{id}/disable
-PUT    /readers/{id}/enable
-
-GET    /borrow/reader-options
-GET    /borrow/book-options
-GET    /borrow/return-options
-GET    /borrow/records
-GET    /borrow/records/{id}
-GET    /borrow/overdue
-POST   /borrow
-POST   /borrow/batch
-POST   /borrow/return/{recordId}
-POST   /borrow/return
-
-GET    /self/me
-GET    /self/categories
-GET    /self/books
-GET    /self/records
-POST   /self/borrow
-POST   /self/return
+```bash
+.\mvnw.cmd test
 ```
 
-## 验收要点
+前端生产构建：
 
-1. 访问首页，分别选择管理员和读者登录，管理员进入管理端，读者进入自助端，未登录不能直接访问接口。
-2. 输入手机号和密码注册读者，系统生成 `R + 年份 + 四位序号` 形式的借阅证号。
-3. 新增分类后新增图书，图书分类以下拉选项选择。
-4. 新增馆藏数量为 3 的图书，系统记录该图书的书架位置和可借数量。
-5. 选择读者和多本不同图书后提交借阅，系统生成多条借阅记录，库存减少，并记录书架位置。
-6. 当前已借 3 本的读者继续借书，系统提示最多同时借阅 3 本。
-7. 同一读者重复借同一种未归还图书，系统提示不能重复借阅同一种图书。
-8. 选择部分记录归还，所选记录变为已归还，未选记录保持借阅中。
-9. 存在超过应还日期的未还记录时，逾期查询页显示该记录和逾期天数。
-10. 读者登录后借书、还书、查看记录，只能办理和查看本人数据。
-11. 连续借出和归还同一本书，馆藏总数不变，可借数量正确增减。
-12. 查看借阅记录或图书详情时，能看到图书书架位置和库存信息。
-
-## 文档与图示
-
-设计说明、ER 图、用例图、借书流程图和还书流程图见：
-
-```text
-docs/design.md
+```bash
+cd frontend
+npm run build:spring
 ```
 
-本 README 依据《图书馆借阅管理系统需求规格说明书_修改.docx》整理。
+## 部署建议
+
+- 生产环境请修改默认管理员密码和数据库密码。
+- 不建议在生产库长期使用 `spring.jpa.hibernate.ddl-auto=update`，可改用明确的 SQL 迁移脚本。
+- 如果并发用户增加，请根据数据库承载能力调整 Hikari 连接池和 MySQL 最大连接数。
+- `library.max-page-size` 用于限制单次分页返回量，避免大表查询把页面拖慢。
+- 大型数据量场景下，保持 `library.repair-legacy-data-on-startup=false`。
+
+## 常见问题
+
+### 8080 端口被占用
+
+先确认占用进程：
+
+```bash
+netstat -ano | findstr :8080
+```
+
+结束旧进程后再启动。本项目默认固定使用 `8080`，前端代理和文档都按该地址配置。
+
+### 前端页面还是旧样子
+
+重新构建前端并打包后端：
+
+```bash
+cd frontend
+npm run build:spring
+cd ..
+.\mvnw.cmd -DskipTests package
+java -jar target\demo-0.0.1-SNAPSHOT.jar
+```
+
+浏览器仍缓存旧资源时，按 `Ctrl + F5` 强制刷新。
+
+### 读者被冻结后为什么不能登录
+
+这是当前业务规则：逾期罚款待缴纳或管理员冻结后，读者不能登录自助端，也不能继续借书/续借。管理员在逾期处理中确认罚款已缴纳或免罚后，系统会检查该读者是否还有其他逾期或待缴罚款；全部处理完才会自动恢复启用。
+
+## 后续可扩展方向
+
+- 条码/二维码扫描借还。
+- 邮件、短信或站内信到期提醒。
+- 更细的馆藏副本流转记录。
+- 多馆区、多角色权限和操作审计。
+- 预约、催还、丢失赔偿和损坏登记。
+- Docker Compose 一键启动 MySQL + 后端服务。

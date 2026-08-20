@@ -1,26 +1,31 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 import java.time.LocalDateTime;
 
+// 图书分类实体。
 @Entity
 @Table(name = "categories")
 public class Category {
+    // 分类主键 id。
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 分类名称，唯一。
     @Column(unique = true)
     private String name;
 
+    // 分类说明。
     private String description;
 
+    // 创建时间。
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
